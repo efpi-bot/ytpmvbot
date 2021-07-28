@@ -3,6 +3,7 @@ import os
 import shutil
 from moviepy.editor import *
 import discord
+from random import randint
 
 
 class ytpmv:
@@ -85,6 +86,10 @@ class ytpmv:
 		uniqueNotes = []
 		for i in notes:
 			notePitch = i.split('/')[0]
+
+			if notePitch == '':
+				continue
+
 			try:
 				int(notePitch)
 			except:
@@ -108,31 +113,35 @@ class ytpmv:
 			length = float(notes[i].split('/')[1])*60/bpm
 			pitch = notes[i].split('/')[0]
 
+			if pitch != '':
 
-			audio = AudioFileClip(f'assets/samp{pitch}.mp3')
-			clip = VideoFileClip(f"assets/samp{flipSwitch}.mp4")
+				audio = AudioFileClip(f'assets/samp{pitch}.mp3')
+				clip = VideoFileClip(f"assets/samp{flipSwitch}.mp4")
 
-			clip.start = timer
-			audio.start = timer
-			if length < clip.duration:
-				clip.end = timer+length
-				audio.end = timer+length
-			else:
-				clip.end = timer+clip.duration
-				audio.end = timer+clip.duration
+				clip.start = timer
+				audio.start = timer
+
+				if length < clip.duration:
+					clip.end = timer+length
+					audio.end = timer+length
+				else:
+					clip.end = timer+clip.duration
+					audio.end = timer+clip.duration
+
+				flipSwitch *= -1
+
+				timelineV.append(clip)
+				timelineA.append(audio)
 
 			timer += length
-			flipSwitch *= -1
-
-			timelineV.append(clip)
-			timelineA.append(audio)
 
 		final_Vclip = CompositeVideoClip(timelineV)
 		final_Aclip = CompositeAudioClip(timelineA)
 		final_Vclip.audio = final_Aclip
-		final_Vclip.resize(width=420).write_videofile("ytpmvbot.mp4")
+		randomNum = randint(1,1000)
+		final_Vclip.resize(width=420).write_videofile(f"ytpmvbot{randomNum}.mp4")
 
-		await message.reply(file=discord.File('ytpmvbot.mp4'))
+		await message.reply(file=discord.File(f'ytpmvbot{randomNum}.mp4'))
 
 
 #DISCORD BOT HERE
