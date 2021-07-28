@@ -8,7 +8,39 @@ import discord
 class ytpmv:
 
 	def __init__(self):
-		None
+		self.mergeQueue = []
+		self.fileNames = []
+
+
+
+	async def merge(self, message):
+		
+		for i in self.mergeQueue:
+			attachment = i.attachments[0]
+			filename = attachment.filename
+			file = open(f'./merge/{filename}', 'wb')
+			await attachment.save(file)
+			self.fileNames.append(filename)
+
+		tracks = []
+		for i in self.fileNames:
+			clip = VideoFileClip(f"./merge/{i}")
+			tracks.append(clip)
+
+		final_clip = clips_array([tracks])
+		final_clip.resize(width=420).write_videofile("ytpmvmerged.mp4")
+
+		await message.reply(file=discord.File('ytpmvmerged.mp4'))
+		self.reset()
+
+	async def add(self, message):
+		referencedMessage = await message.channel.fetch_message(message.reference.message_id)
+		self.mergeQueue.append(referencedMessage)
+		await referencedMessage.add_reaction(emoji='🎬')
+
+	async def reset(self):
+		self.mergeQueue = []
+		self.fileNames = []
 
 
 	async def run(self, message):
@@ -62,7 +94,7 @@ class ytpmv:
 				uniqueNotes.append(int(notePitch))
 
 		for i in uniqueNotes:
-			pitchedSample = ffmpeg.input('samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
+			pitchedSample = ffmpeg.input('assets/samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
 			out = ffmpeg.output(pitchedSample, f'assets/samp{i}.mp3')
 			out.run()
 
@@ -118,8 +150,17 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.lower().startswith('ytpmvbot '):
-        await ytpmv.run(message)
 
+    if message.content.lower() == 'ytpmvbot add':
+    	await ytpmv.add(message)
+
+    elif message.content.lower() == 'ytpmvbot merge':
+    	await ytpmv.merge(message)
+
+    elif message.content.lower() == 'ytpmvbot reset':
+    	await ytpmv.reset()
+
+    elif message.content.lower().startswith('ytpmvbot '):
+        await ytpmv.run(message)
 
 client.run(KEY)
