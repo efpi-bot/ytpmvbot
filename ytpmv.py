@@ -3,14 +3,13 @@ import os
 import shutil
 from moviepy.editor import *
 import discord
-from random import randint
-
 
 class ytpmv:
 
 	def __init__(self):
 		self.mergeQueue = []
 		self.fileNames = []
+		self.idNum = 0
 
 
 
@@ -41,9 +40,10 @@ class ytpmv:
 			await message.reply('Correct number of videos to merge is 2 or 4. Send \'ytpmvbot reset\' to start over.')
 			return
 		
-		final_clip.resize(width=420).write_videofile("ytpmvmerged.mp4")
+		final_clip.resize(width=420).write_videofile(f"ytpmvmerged{self.idNum}.mp4")
 
-		await message.reply(file=discord.File('ytpmvmerged.mp4'))
+		await message.reply(file=discord.File(f'ytpmvmerged{self.idNum}.mp4'))
+		self.idNum += 1
 		await self.reset()
 
 	async def add(self, message):
@@ -153,10 +153,11 @@ class ytpmv:
 		final_Vclip = CompositeVideoClip(timelineV)
 		final_Aclip = CompositeAudioClip(timelineA)
 		final_Vclip.audio = final_Aclip
-		randomNum = randint(1,1000)
-		final_Vclip.resize(width=420).write_videofile(f"ytpmvbot{randomNum}.mp4")
 
-		await message.reply(file=discord.File(f'ytpmvbot{randomNum}.mp4'))
+		final_Vclip.resize(width=420).write_videofile(f"ytpmvbot{self.idNum}.mp4")
+		self.idNum += 1
+
+		await message.reply(file=discord.File(f'ytpmvbot{self.idNum}.mp4'))
 
 
 #DISCORD BOT HERE
