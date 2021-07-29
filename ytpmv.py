@@ -29,13 +29,17 @@ class ytpmv:
 			tracks.append(clip)
 
 
-		if len(self.mergeQueue) < 3:
+		if len(self.mergeQueue) == 2:
 			final_clip = clips_array([tracks])
-		else:
+
+		elif len(self.mergeQueue) == 4:
 			top = tracks[:2]
 			bottom = tracks[2:]
 
 			final_clip = clips_array([top, bottom])
+		else:
+			await message.reply('Correct number of videos to merge is 2 or 4. Send \'ytpmvbot reset\' to start over.')
+			return
 		
 		final_clip.resize(width=420).write_videofile("ytpmvmerged.mp4")
 
