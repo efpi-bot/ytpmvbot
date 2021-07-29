@@ -28,13 +28,24 @@ class ytpmv:
 			clip = VideoFileClip(f"./merge/{i}")
 			tracks.append(clip)
 
-		final_clip = clips_array([tracks])
+
+		if len(self.mergeQueue) < 3:
+			final_clip = clips_array([tracks])
+		else:
+			top = tracks[:2]
+			bottom = tracks[2:]
+
+			final_clip = clips_array([top, bottom])
+		
 		final_clip.resize(width=420).write_videofile("ytpmvmerged.mp4")
 
 		await message.reply(file=discord.File('ytpmvmerged.mp4'))
-		self.reset()
+		await self.reset()
 
 	async def add(self, message):
+		if len(self.mergeQueue) == 4:
+			await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
+			return
 		referencedMessage = await message.channel.fetch_message(message.reference.message_id)
 		self.mergeQueue.append(referencedMessage)
 		await referencedMessage.add_reaction(emoji='🎬')
