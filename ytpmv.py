@@ -141,7 +141,7 @@ class ytpmv:
 					audio.end = timer+length
 				else:
 					clip.end = timer+clip.duration
-					audio.end = timer+clip.duration
+					audio.end = timer+audio.duration
 
 				flipSwitch *= -1
 
