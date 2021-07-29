@@ -155,9 +155,8 @@ class ytpmv:
 		final_Vclip.audio = final_Aclip
 
 		final_Vclip.resize(width=420).write_videofile(f"ytpmvbot{self.idNum}.mp4")
-		self.idNum += 1
-
 		await message.reply(file=discord.File(f'ytpmvbot{self.idNum}.mp4'))
+		self.idNum += 1
 
 
 #DISCORD BOT HERE
