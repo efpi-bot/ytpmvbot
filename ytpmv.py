@@ -39,6 +39,9 @@ class ytpmv:
         elif message.content.lower().startswith('ytpmvbot trim '):
             await self.trim(message)
 
+        elif message.content.lower().startswith('ytpmvbot volume '):
+            await self.volume(message)
+
         elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
 
@@ -240,6 +243,36 @@ class ytpmv:
         clip.resize(width=420).write_videofile('./temp/trimmed.mp4')
         await message.reply(file=discord.File(f'./temp/trimmed.mp4'))
 
+        #CLOSE CLIPS
+        clip.close()
+
+
+
+    async def volume(self, message):
+
+        msgSplit = message.content.split(' ')
+        try:
+            volRate = float(msgSplit[2])
+        except:
+            return
+
+        await message.add_reaction(emoji='⌚')
+
+        filename = await self.saveAttachmentOrRef(message)
+        if filename == None:
+            return
+
+        clip = VideoFileClip(f'./temp/{filename}')
+        try:
+            clip = clip.volumex(volRate)
+        except:
+            return
+
+        clip.resize(width=420).write_videofile('./temp/volume.mp4')
+        await message.reply(file=discord.File(f'./temp/volume.mp4'))
+
+        #CLOSE CLIPS
+        clip.close()
 
 
     async def add(self, message):
