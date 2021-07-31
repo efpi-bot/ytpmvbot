@@ -16,7 +16,7 @@ class ytpmv:
     async def renderFlippedVid(self,filename):
 
 
-        inVid = ffmpeg.input(filename)
+        inVid = ffmpeg.input(f'./temp/{filename}')
         inFlipVid = inVid.video.hflip()
 
         outVid = ffmpeg.output(inVid, 'temp/samp1.mp4')
@@ -99,6 +99,11 @@ class ytpmv:
         final_Aclip.close()
 
 
+    def clearTemp(self):
+        if os.path.exists('temp'):
+            shutil.rmtree('temp')
+        os.mkdir('temp')
+
 
     async def run(self, message):
 
@@ -107,6 +112,9 @@ class ytpmv:
         #CHECK FOR ATTACHMENT
         if message.attachments == []:
             return
+
+        #RESET TEMP FOLDER
+        self.clearTemp()
 
         #ADD REACTION
         await message.add_reaction(emoji='⌚')
@@ -126,21 +134,14 @@ class ytpmv:
         attachment = message.attachments[0]
         filename = attachment.filename
         print(filename)
-        file = open(f'./{filename}', 'wb')
+        file = open(f'./temp/{filename}', 'wb')
         await attachment.save(file)
 
-
-        #RESET TEMP FOLDER
-        if os.path.exists('temp'):
-            shutil.rmtree('temp')
-        os.mkdir('temp')
 
 
         #RENDER VIDEO CLIPS
         await self.renderFlippedVid(filename)
 
-        #DELETE ORIGINAL SAMPLE
-        os.remove(f'./{filename}')
 
         #RENDER PITCHED SAMPLES
         if await self.renderPitchedSamples(notes) == 'error':
@@ -157,19 +158,23 @@ class ytpmv:
 
     async def merge(self, message):
         await message.add_reaction(emoji='⌚')
+
+        #RESET TEMP FOLDER
+        self.clearTemp()
         
+        counter = 0
         for i in self.vidsToMerge:
             attachment = i.attachments[0]
-            filename = attachment.filename
-            file = open(f'./merge/{filename}', 'wb')
+            file = open(f'./temp/merge{counter}', 'wb')
             await attachment.save(file)
-            self.fileNames.append(filename)
+            counter += 1
 
         tracks = []
-        for i in self.fileNames:
-            clip = VideoFileClip(f"./merge/{i}")
+        counter = 0
+        for i in self.vidsToMerge:
+            clip = VideoFileClip(f"./temp/merge{counter}")
             tracks.append(clip)
-
+            counter += 1
 
         if len(self.vidsToMerge) == 2:
             final_clip = clips_array([tracks])
@@ -183,11 +188,19 @@ class ytpmv:
             await message.reply('Correct number of videos to merge is 2 or 4. Send \'ytpmvbot reset\' to start over.')
             return
         
-        final_clip.resize(width=420).write_videofile(f"ytpmvmerged{self.idNum}.mp4")
+        final_clip.resize(width=420).write_videofile(f'./temp/ytpmvmbot.mp4')
+        await message.reply(file=discord.File(f'./temp/ytpmvmbot.mp4'))
 
-        await message.reply(file=discord.File(f'ytpmvmerged{self.idNum}.mp4'))
-        self.idNum += 1
-        await self.reset()
+        #CLOSE CLIPS
+        for i in tracks:
+            i.close()
+
+        final_clip.close()
+
+        await self.reset(message)
+
+
+
 
     async def add(self, message):
         if len(self.vidsToMerge) == 4:
@@ -197,9 +210,11 @@ class ytpmv:
         self.vidsToMerge.append(referencedMessage)
         await referencedMessage.add_reaction(emoji='🎬')
 
-    async def reset(self):
+    async def reset(self, message):
         self.vidsToMerge = []
         self.fileNames = []
+        await message.add_reaction(emoji="👌")
+
 
 
     async def checkQueue(self):
@@ -216,7 +231,7 @@ class ytpmv:
             await self.merge(message)
 
         elif message.content.lower() == 'ytpmvbot reset':
-            await self.reset()
+            await self.reset(message)
 
         elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
