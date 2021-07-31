@@ -3,7 +3,7 @@ import os
 import shutil
 from moviepy.editor import *
 import discord
-
+import asyncio
 
 
 class ytpmv:
@@ -12,6 +12,8 @@ class ytpmv:
         self.mergeQueue = []
         self.fileNames = []
         self.idNum = 0
+
+
 
     async def renderFlippedVid(self,filename):
 
@@ -29,6 +31,8 @@ class ytpmv:
 
         outFlip = ffmpeg.output(inFlipVid, 'assets/samp-1.mp4')
         outFlip.run()
+
+
 
 
     async def renderPitchedSamples(self, notes):
@@ -51,6 +55,7 @@ class ytpmv:
             pitchedSample = ffmpeg.input('assets/samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
             out = ffmpeg.output(pitchedSample, f'assets/samp{i}.mp3')
             out.run()
+
 
 
     async def renderYTPMV(self, notes, bpm):
@@ -103,6 +108,8 @@ class ytpmv:
         final_Aclip.close()
 
 
+
+
     async def run(self, message):
         if message.attachments == []:
             return
@@ -141,6 +148,8 @@ class ytpmv:
 
         self.idNum += 1
         await message.reply(file=discord.File(f'ytpmvbot{self.idNum-1}.mp4'))
+
+
 
 
     async def merge(self, message):
