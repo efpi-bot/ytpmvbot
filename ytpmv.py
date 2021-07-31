@@ -8,209 +8,187 @@ import discord
 
 class ytpmv:
 
-	def __init__(self):
-		self.queue = []
-		self.mergeQueue = []
-		self.fileNames = []
-		self.idNum = 0
+    def __init__(self):
+        self.mergeQueue = []
+        self.fileNames = []
+        self.idNum = 0
 
-	async def renderFlippedVid(self,filename):
+    async def renderFlippedVid(self,filename):
 
-		if os.path.exists('assets'):
-			shutil.rmtree('assets')
+        if os.path.exists('assets'):
+            shutil.rmtree('assets')
 
-		os.mkdir('assets')
-
-
-		inVid = ffmpeg.input(filename)
-		inFlipVid = inVid.video.hflip()
-
-		outVid = ffmpeg.output(inVid, 'assets/samp1.mp4')
-		outVid.run()
-
-		outFlip = ffmpeg.output(inFlipVid, 'assets/samp-1.mp4')
-		outFlip.run()
+        os.mkdir('assets')
 
 
-	async def renderPitchedSamples(self, notes):
+        inVid = ffmpeg.input(filename)
+        inFlipVid = inVid.video.hflip()
 
-		uniqueNotes = []
-		for i in notes:
-			notePitch = i.split('/')[0]
+        outVid = ffmpeg.output(inVid, 'assets/samp1.mp4')
+        outVid.run()
 
-			if notePitch == '':
-				continue
-
-			try:
-				int(notePitch)
-			except:
-				return 'error'
-			if notePitch != '' and int(notePitch) not in uniqueNotes:
-				uniqueNotes.append(int(notePitch))
-
-		for i in uniqueNotes:
-			pitchedSample = ffmpeg.input('assets/samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
-			out = ffmpeg.output(pitchedSample, f'assets/samp{i}.mp3')
-			out.run()
+        outFlip = ffmpeg.output(inFlipVid, 'assets/samp-1.mp4')
+        outFlip.run()
 
 
-	async def renderYTPMV(self, notes, bpm):
+    async def renderPitchedSamples(self, notes):
 
-		timelineV = []
-		timelineA = []
-		flipSwitch = 1
-		timer = 0.0
-		for i in range(len(notes)):
+        uniqueNotes = []
+        for i in notes:
+            notePitch = i.split('/')[0]
 
-			length = float(notes[i].split('/')[1])*60/bpm
-			pitch = notes[i].split('/')[0]
+            if notePitch == '':
+                continue
 
-			if pitch != '':
+            try:
+                int(notePitch)
+            except:
+                return 'error'
+            if notePitch != '' and int(notePitch) not in uniqueNotes:
+                uniqueNotes.append(int(notePitch))
 
-				audio = AudioFileClip(f'assets/samp{pitch}.mp3')
-				clip = VideoFileClip(f"assets/samp{flipSwitch}.mp4")
-
-				clip.start = timer
-				audio.start = timer
-
-				if length < clip.duration:
-					clip.end = timer+length
-					audio.end = timer+length
-				else:
-					clip.end = timer+clip.duration
-					audio.end = timer+audio.duration
-
-				flipSwitch *= -1
-
-				timelineV.append(clip)
-				timelineA.append(audio)
-
-			timer += length
-
-		final_Vclip = CompositeVideoClip(timelineV)
-		final_Aclip = CompositeAudioClip(timelineA)
-		final_Vclip.audio = final_Aclip
-
-		final_Vclip.resize(width=420).write_videofile(f"ytpmvbot{self.idNum}.mp4")
-
-		#CLOSE CLIPS
-		for i in timelineV:
-			i.close()
-
-		for i in timelineA:
-			i.close()
-
-		final_Vclip.close()
-		final_Aclip.close()
+        for i in uniqueNotes:
+            pitchedSample = ffmpeg.input('assets/samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
+            out = ffmpeg.output(pitchedSample, f'assets/samp{i}.mp3')
+            out.run()
 
 
-	async def run(self, message):
-		if message.attachments == []:
-			return
+    async def renderYTPMV(self, notes, bpm):
 
-		bpm = 120
-		content = message.content
-		if len(content.split('-bpm')) == 2:
-			try:
-				bpm = int(content.split('-bpm')[1])
-			except:
-				None
-			content = content.split('-bpm')[0].rstrip()
+        timelineV = []
+        timelineA = []
+        flipSwitch = 1
+        timer = 0.0
+        for i in range(len(notes)):
 
-		notes = content[9:].split(' ')
-		print(notes)
+            length = float(notes[i].split('/')[1])*60/bpm
+            pitch = notes[i].split('/')[0]
 
-		attachment = message.attachments[0]
-		filename = attachment.filename
-		print(filename)
-		file = open(f'./{filename}', 'wb')
-		await attachment.save(file)
+            if pitch != '':
 
-		#RENDER HFLIP
-		await self.renderFlippedVid(filename)
+                audio = AudioFileClip(f'assets/samp{pitch}.mp3')
+                clip = VideoFileClip(f"assets/samp{flipSwitch}.mp4")
 
-		#RENDER PITCHED SAMPLES
-		if await self.renderPitchedSamples(notes) == 'error':
-			await message.reply('wrong pitch value, aborting...')
-			return
+                clip.start = timer
+                audio.start = timer
 
+                if length < clip.duration:
+                    clip.end = timer+length
+                    audio.end = timer+length
+                else:
+                    clip.end = timer+clip.duration
+                    audio.end = timer+audio.duration
 
-		#RENDER YTPMV
-		await self.renderYTPMV(notes, bpm)
+                flipSwitch *= -1
 
-		await message.reply(file=discord.File(f'ytpmvbot{self.idNum}.mp4'))
-		self.idNum += 1
+                timelineV.append(clip)
+                timelineA.append(audio)
 
+            timer += length
 
-	async def merge(self, message):
-		
-		for i in self.mergeQueue:
-			attachment = i.attachments[0]
-			filename = attachment.filename
-			file = open(f'./merge/{filename}', 'wb')
-			await attachment.save(file)
-			self.fileNames.append(filename)
+        final_Vclip = CompositeVideoClip(timelineV)
+        final_Aclip = CompositeAudioClip(timelineA)
+        final_Vclip.audio = final_Aclip
 
-		tracks = []
-		for i in self.fileNames:
-			clip = VideoFileClip(f"./merge/{i}")
-			tracks.append(clip)
+        final_Vclip.resize(width=420).write_videofile(f"ytpmvbot{self.idNum}.mp4")
+
+        #CLOSE CLIPS
+        for i in timelineV:
+            i.close()
+
+        for i in timelineA:
+            i.close()
+
+        final_Vclip.close()
+        final_Aclip.close()
 
 
-		if len(self.mergeQueue) == 2:
-			final_clip = clips_array([tracks])
+    async def run(self, message):
+        if message.attachments == []:
+            return
 
-		elif len(self.mergeQueue) == 4:
-			top = tracks[:2]
-			bottom = tracks[2:]
+        await message.add_reaction(emoji='⌚')
 
-			final_clip = clips_array([top, bottom])
-		else:
-			await message.reply('Correct number of videos to merge is 2 or 4. Send \'ytpmvbot reset\' to start over.')
-			return
-		
-		final_clip.resize(width=420).write_videofile(f"ytpmvmerged{self.idNum}.mp4")
+        bpm = 120
+        content = message.content
+        if len(content.split('-bpm')) == 2:
+            try:
+                bpm = int(content.split('-bpm')[1])
+            except:
+                None
+            content = content.split('-bpm')[0].rstrip()
 
-		await message.reply(file=discord.File(f'ytpmvmerged{self.idNum}.mp4'))
-		self.idNum += 1
-		await self.reset()
+        notes = content[9:].split(' ')
+        print(notes)
 
-	async def add(self, message):
-		if len(self.mergeQueue) == 4:
-			await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
-			return
-		referencedMessage = await message.channel.fetch_message(message.reference.message_id)
-		self.mergeQueue.append(referencedMessage)
-		await referencedMessage.add_reaction(emoji='🎬')
+        attachment = message.attachments[0]
+        filename = attachment.filename
+        print(filename)
+        file = open(f'./{filename}', 'wb')
+        await attachment.save(file)
 
-	async def reset(self):
-		self.mergeQueue = []
-		self.fileNames = []
+        #RENDER HFLIP
+        await self.renderFlippedVid(filename)
 
-
-	async def manageQueue(self):
-		if self.queue == []:
-			return
-
-		currentMessage = self.queue[0]
-
-	    if currentMessage.content.lower() == 'ytpmvbot add':
-	    	await self.add(message)
-
-	    elif currentMessage.content.lower() == 'ytpmvbot merge':
-	    	await self.merge(message)
-
-	    elif currentMessage.content.lower() == 'ytpmvbot reset':
-	    	await self.reset()
-
-	    elif currentMessage.content.lower().startswith('ytpmvbot '):
-	    	await self.run(currentMessage)
+        #RENDER PITCHED SAMPLES
+        if await self.renderPitchedSamples(notes) == 'error':
+            await message.reply('wrong pitch value, aborting...')
+            return
 
 
-	async def addToQueue(self, message):
-		self.queue.append(message)
-		if message == self.queue[0]:
-			await self.manageQueue()
+        #RENDER YTPMV
+        await self.renderYTPMV(notes, bpm)
+
+        self.idNum += 1
+        await message.reply(file=discord.File(f'ytpmvbot{self.idNum-1}.mp4'))
+
+
+    async def merge(self, message):
+        await message.add_reaction(emoji='⌚')
+        
+        for i in self.mergeQueue:
+            attachment = i.attachments[0]
+            filename = attachment.filename
+            file = open(f'./merge/{filename}', 'wb')
+            await attachment.save(file)
+            self.fileNames.append(filename)
+
+        tracks = []
+        for i in self.fileNames:
+            clip = VideoFileClip(f"./merge/{i}")
+            tracks.append(clip)
+
+
+        if len(self.mergeQueue) == 2:
+            final_clip = clips_array([tracks])
+
+        elif len(self.mergeQueue) == 4:
+            top = tracks[:2]
+            bottom = tracks[2:]
+
+            final_clip = clips_array([top, bottom])
+        else:
+            await message.reply('Correct number of videos to merge is 2 or 4. Send \'ytpmvbot reset\' to start over.')
+            return
+        
+        final_clip.resize(width=420).write_videofile(f"ytpmvmerged{self.idNum}.mp4")
+
+        await message.reply(file=discord.File(f'ytpmvmerged{self.idNum}.mp4'))
+        self.idNum += 1
+        await self.reset()
+
+    async def add(self, message):
+        if len(self.mergeQueue) == 4:
+            await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
+            return
+        referencedMessage = await message.channel.fetch_message(message.reference.message_id)
+        self.mergeQueue.append(referencedMessage)
+        await referencedMessage.add_reaction(emoji='🎬')
+
+    async def reset(self):
+        self.mergeQueue = []
+        self.fileNames = []
+
 
 
 #DISCORD BOT HERE
@@ -228,7 +206,17 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+
+    if message.content.lower() == 'ytpmvbot add':
+        await ytpmv.add(message)
+
+    elif message.content.lower() == 'ytpmvbot merge':
+        await ytpmv.merge(message)
+
+    elif message.content.lower() == 'ytpmvbot reset':
+        await ytpmv.reset()
+
     elif message.content.lower().startswith('ytpmvbot '):
-        await ytpmv.addToQueue(message)
+        await ytpmv.run(message)
 
 client.run(KEY)
