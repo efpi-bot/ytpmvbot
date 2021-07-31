@@ -13,8 +13,97 @@ class ytpmv:
         self.isBusy = False
         self.vidsToMerge = []
 
-    async def renderFlippedVid(self,filename):
 
+
+    async def addToQueue(self, message):
+        self.msgQueue.append(message)
+
+
+
+    async def checkQueue(self):
+        if self.msgQueue == [] or self.isBusy == True:
+            return
+
+        self.isBusy == True
+        message = self.msgQueue[0]
+
+        if message.content.lower() == 'ytpmvbot add':
+            await self.add(message)
+
+        elif message.content.lower() == 'ytpmvbot merge':
+            await self.merge(message)
+
+        elif message.content.lower() == 'ytpmvbot reset':
+            await self.reset(message)
+
+        elif message.content.lower().startswith('ytpmvbot '):
+            await self.run(message)
+
+
+        self.msgQueue.pop(0)
+        self.isBusy == False
+
+
+
+    def clearTemp(self):
+        if os.path.exists('temp'):
+            shutil.rmtree('temp')
+        os.mkdir('temp')
+
+
+
+    async def run(self, message):
+
+        content = message.content
+
+        #CHECK FOR ATTACHMENT
+        if message.attachments == []:
+            return
+
+        #RESET TEMP FOLDER
+        self.clearTemp()
+
+        #ADD REACTION
+        await message.add_reaction(emoji='⌚')
+
+        #CREATE ARRAY OF NOTES
+        notes = content[9:].split(' ')
+
+        #SET BPM
+        bpm = 120
+        if '-bpm' in notes:
+            bpm = float(notes[notes.index('-bpm') + 1])
+            notes.pop(notes.index('-bpm')+1)
+            notes.pop(notes.index('-bpm'))
+
+
+        #SAVE ORIGINAL SAMPLE
+        attachment = message.attachments[0]
+        filename = attachment.filename
+        print(filename)
+        file = open(f'./temp/{filename}', 'wb')
+        await attachment.save(file)
+
+
+
+        #RENDER VIDEO CLIPS
+        await self.renderFlippedVid(filename)
+
+
+        #RENDER PITCHED SAMPLES
+        if await self.renderPitchedSamples(notes) == 'error':
+            await message.reply('wrong pitch value, aborting...')
+            return
+
+        #RENDER YTPMV
+        await self.renderYTPMV(notes, bpm)
+
+        #SEND FILE TO DISCORD
+        await message.reply(file=discord.File(f'./temp/ytpmvbot.mp4'))
+
+
+
+    async def renderFlippedVid(self,filename):
 
         inVid = ffmpeg.input(f'./temp/{filename}')
         inFlipVid = inVid.video.hflip()
@@ -24,6 +113,7 @@ class ytpmv:
 
         outFlip = ffmpeg.output(inFlipVid, 'temp/samp-1.mp4')
         outFlip.run()
+
 
 
     async def renderPitchedSamples(self, notes):
@@ -99,64 +189,27 @@ class ytpmv:
         final_Aclip.close()
 
 
-    def clearTemp(self):
-        if os.path.exists('temp'):
-            shutil.rmtree('temp')
-        os.mkdir('temp')
 
+    async def add(self, message):
 
-    async def run(self, message):
-
-        content = message.content
-
-        #CHECK FOR ATTACHMENT
-        if message.attachments == []:
+        if len(self.vidsToMerge) == 4:
+            await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
             return
-
-        #RESET TEMP FOLDER
-        self.clearTemp()
-
-        #ADD REACTION
-        await message.add_reaction(emoji='⌚')
-
-        #CREATE ARRAY OF NOTES
-        notes = content[9:].split(' ')
-
-        #SET BPM
-        bpm = 120
-        if '-bpm' in notes:
-            bpm = float(notes[notes.index('-bpm') + 1])
-            notes.pop(notes.index('-bpm')+1)
-            notes.pop(notes.index('-bpm'))
-
-
-        #SAVE ORIGINAL SAMPLE
-        attachment = message.attachments[0]
-        filename = attachment.filename
-        print(filename)
-        file = open(f'./temp/{filename}', 'wb')
-        await attachment.save(file)
+        referencedMessage = await message.channel.fetch_message(message.reference.message_id)
+        self.vidsToMerge.append(referencedMessage)
+        await referencedMessage.add_reaction(emoji='🎬')
 
 
 
-        #RENDER VIDEO CLIPS
-        await self.renderFlippedVid(filename)
-
-
-        #RENDER PITCHED SAMPLES
-        if await self.renderPitchedSamples(notes) == 'error':
-            await message.reply('wrong pitch value, aborting...')
-            return
-
-        #RENDER YTPMV
-        await self.renderYTPMV(notes, bpm)
-
-        #SEND FILE TO DISCORD
-        await message.reply(file=discord.File(f'./temp/ytpmvbot.mp4'))
+    async def reset(self, message):
+        self.vidsToMerge = []
+        self.fileNames = []
+        await message.add_reaction(emoji="👌")
 
 
 
     async def merge(self, message):
+
         await message.add_reaction(emoji='⌚')
 
         #RESET TEMP FOLDER
@@ -198,51 +251,6 @@ class ytpmv:
         final_clip.close()
 
         await self.reset(message)
-
-
-
-
-    async def add(self, message):
-        if len(self.vidsToMerge) == 4:
-            await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
-            return
-        referencedMessage = await message.channel.fetch_message(message.reference.message_id)
-        self.vidsToMerge.append(referencedMessage)
-        await referencedMessage.add_reaction(emoji='🎬')
-
-    async def reset(self, message):
-        self.vidsToMerge = []
-        self.fileNames = []
-        await message.add_reaction(emoji="👌")
-
-
-
-    async def checkQueue(self):
-        if self.msgQueue == [] or self.isBusy == True:
-            return
-
-        self.isBusy == True
-        message = self.msgQueue[0]
-
-        if message.content.lower() == 'ytpmvbot add':
-            await self.add(message)
-
-        elif message.content.lower() == 'ytpmvbot merge':
-            await self.merge(message)
-
-        elif message.content.lower() == 'ytpmvbot reset':
-            await self.reset(message)
-
-        elif message.content.lower().startswith('ytpmvbot '):
-            await self.run(message)
-
-
-        self.msgQueue.pop(0)
-        self.isBusy == False
-
-
-    async def addToQueue(self, message):
-        self.msgQueue.append(message)
 
 
 
