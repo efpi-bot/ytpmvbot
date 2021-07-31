@@ -9,7 +9,9 @@ import asyncio
 class ytpmv:
 
     def __init__(self):
-        self.mergeQueue = []
+        self.msgQueue = []
+        self.isBusy = False
+        self.vidsToMerge = []
         self.fileNames = []
         self.idNum = 0
 
@@ -155,7 +157,7 @@ class ytpmv:
     async def merge(self, message):
         await message.add_reaction(emoji='⌚')
         
-        for i in self.mergeQueue:
+        for i in self.vidsToMerge:
             attachment = i.attachments[0]
             filename = attachment.filename
             file = open(f'./merge/{filename}', 'wb')
@@ -168,10 +170,10 @@ class ytpmv:
             tracks.append(clip)
 
 
-        if len(self.mergeQueue) == 2:
+        if len(self.vidsToMerge) == 2:
             final_clip = clips_array([tracks])
 
-        elif len(self.mergeQueue) == 4:
+        elif len(self.vidsToMerge) == 4:
             top = tracks[:2]
             bottom = tracks[2:]
 
@@ -187,16 +189,44 @@ class ytpmv:
         await self.reset()
 
     async def add(self, message):
-        if len(self.mergeQueue) == 4:
+        if len(self.vidsToMerge) == 4:
             await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
             return
         referencedMessage = await message.channel.fetch_message(message.reference.message_id)
-        self.mergeQueue.append(referencedMessage)
+        self.vidsToMerge.append(referencedMessage)
         await referencedMessage.add_reaction(emoji='🎬')
 
     async def reset(self):
-        self.mergeQueue = []
+        self.vidsToMerge = []
         self.fileNames = []
+
+
+    async def checkQueue(self):
+        if self.msgQueue == [] or self.isBusy == True:
+            return
+
+        self.isBusy == True
+        message = self.msgQueue[0]
+
+        if message.content.lower() == 'ytpmvbot add':
+            await self.add(message)
+
+        elif message.content.lower() == 'ytpmvbot merge':
+            await self.merge(message)
+
+        elif message.content.lower() == 'ytpmvbot reset':
+            await self.reset()
+
+        elif message.content.lower().startswith('ytpmvbot '):
+            await self.run(message)
+
+
+        self.msgQueue.pop(0)
+        self.isBusy == False
+
+
+    async def addToQueue(self, message):
+        self.msgQueue.append(message)
 
 
 
@@ -210,22 +240,20 @@ ytpmv = ytpmv()
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
 
+    #BACKGROUND QUEUE CHECK
+    while not client.is_closed():
+        await ytpmv.checkQueue()
+        await asyncio.sleep(1)
+
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
 
 
-    if message.content.lower() == 'ytpmvbot add':
-        await ytpmv.add(message)
+    if message.content.lower().startswith('ytpmvbot '):
+        await ytpmv.addToQueue(message)
 
-    elif message.content.lower() == 'ytpmvbot merge':
-        await ytpmv.merge(message)
 
-    elif message.content.lower() == 'ytpmvbot reset':
-        await ytpmv.reset()
-
-    elif message.content.lower().startswith('ytpmvbot '):
-        await ytpmv.run(message)
 
 client.run(KEY)
