@@ -12,29 +12,18 @@ class ytpmv:
         self.msgQueue = []
         self.isBusy = False
         self.vidsToMerge = []
-        self.fileNames = []
-        self.idNum = 0
-
-
 
     async def renderFlippedVid(self,filename):
-
-        if os.path.exists('assets'):
-            shutil.rmtree('assets')
-
-        os.mkdir('assets')
 
 
         inVid = ffmpeg.input(filename)
         inFlipVid = inVid.video.hflip()
 
-        outVid = ffmpeg.output(inVid, 'assets/samp1.mp4')
+        outVid = ffmpeg.output(inVid, 'temp/samp1.mp4')
         outVid.run()
 
-        outFlip = ffmpeg.output(inFlipVid, 'assets/samp-1.mp4')
+        outFlip = ffmpeg.output(inFlipVid, 'temp/samp-1.mp4')
         outFlip.run()
-
-
 
 
     async def renderPitchedSamples(self, notes):
@@ -54,8 +43,8 @@ class ytpmv:
                 uniqueNotes.append(int(notePitch))
 
         for i in uniqueNotes:
-            pitchedSample = ffmpeg.input('assets/samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
-            out = ffmpeg.output(pitchedSample, f'assets/samp{i}.mp3')
+            pitchedSample = ffmpeg.input('temp/samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
+            out = ffmpeg.output(pitchedSample, f'temp/samp{i}.mp3')
             out.run()
 
 
@@ -73,8 +62,8 @@ class ytpmv:
 
             if pitch != '':
 
-                audio = AudioFileClip(f'assets/samp{pitch}.mp3')
-                clip = VideoFileClip(f"assets/samp{flipSwitch}.mp4")
+                audio = AudioFileClip(f'temp/samp{pitch}.mp3')
+                clip = VideoFileClip(f"temp/samp{flipSwitch}.mp4")
 
                 clip.start = timer
                 audio.start = timer
@@ -97,7 +86,7 @@ class ytpmv:
         final_Aclip = CompositeAudioClip(timelineA)
         final_Vclip.audio = final_Aclip
 
-        final_Vclip.resize(width=420).write_videofile(f"ytpmvbot{self.idNum}.mp4")
+        final_Vclip.resize(width=420).write_videofile(f"./temp/ytpmvbot.mp4")
 
         #CLOSE CLIPS
         for i in timelineV:
@@ -111,46 +100,58 @@ class ytpmv:
 
 
 
-
     async def run(self, message):
+
+        content = message.content
+
+        #CHECK FOR ATTACHMENT
         if message.attachments == []:
             return
 
+        #ADD REACTION
         await message.add_reaction(emoji='⌚')
 
-        bpm = 120
-        content = message.content
-        if len(content.split('-bpm')) == 2:
-            try:
-                bpm = int(content.split('-bpm')[1])
-            except:
-                None
-            content = content.split('-bpm')[0].rstrip()
-
+        #CREATE ARRAY OF NOTES
         notes = content[9:].split(' ')
-        print(notes)
 
+        #SET BPM
+        bpm = 120
+        if '-bpm' in notes:
+            bpm = float(notes[notes.index('-bpm') + 1])
+            notes.pop(notes.index('-bpm')+1)
+            notes.pop(notes.index('-bpm'))
+
+
+        #SAVE ORIGINAL SAMPLE
         attachment = message.attachments[0]
         filename = attachment.filename
         print(filename)
         file = open(f'./{filename}', 'wb')
         await attachment.save(file)
 
-        #RENDER HFLIP
+
+        #RESET TEMP FOLDER
+        if os.path.exists('temp'):
+            shutil.rmtree('temp')
+        os.mkdir('temp')
+
+
+        #RENDER VIDEO CLIPS
         await self.renderFlippedVid(filename)
+
+        #DELETE ORIGINAL SAMPLE
+        os.remove(f'./{filename}')
 
         #RENDER PITCHED SAMPLES
         if await self.renderPitchedSamples(notes) == 'error':
             await message.reply('wrong pitch value, aborting...')
             return
 
-
         #RENDER YTPMV
         await self.renderYTPMV(notes, bpm)
 
-        self.idNum += 1
-        await message.reply(file=discord.File(f'ytpmvbot{self.idNum-1}.mp4'))
-
+        #SEND FILE TO DISCORD
+        await message.reply(file=discord.File(f'./temp/ytpmvbot.mp4'))
 
 
 
