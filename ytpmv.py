@@ -36,6 +36,9 @@ class ytpmv:
         elif message.content.lower() == 'ytpmvbot reset':
             await self.reset(message)
 
+        elif message.content.lower().startswith('ytpmvbot trim '):
+            await self.trim(message)
+
         elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
 
@@ -57,7 +60,7 @@ class ytpmv:
         content = message.content
 
         #CHECK FOR ATTACHMENT
-        if message.attachments == []:
+        if message.attachments == [] and message.reference == None:
             return
 
         #RESET TEMP FOLDER
@@ -78,12 +81,9 @@ class ytpmv:
 
 
         #SAVE ORIGINAL SAMPLE
-        attachment = message.attachments[0]
-        filename = attachment.filename
-        print(filename)
-        file = open(f'./temp/{filename}', 'wb')
-        await attachment.save(file)
-
+        filename = await self.saveAttachmentOrRef(message)
+        if filename == None:
+            return
 
 
         #RENDER VIDEO CLIPS
@@ -190,12 +190,68 @@ class ytpmv:
 
 
 
+    async def saveAttachmentOrRef(self, message):
+
+        #CHECK FOR ATTACHMENT
+        if message.attachments == [] and message.reference == None:
+            return
+
+        #SAVE ORIGINAL SAMPLE
+        if message.attachments != []:
+            attachment = message.attachments[0]
+        else:
+            referencedMessage = await message.channel.fetch_message(message.reference.message_id)
+            try:
+                attachment = referencedMessage.attachments[0]
+            except:
+                return
+
+        filename = attachment.filename
+        print(filename)
+        file = open(f'./temp/{filename}', 'wb')
+        await attachment.save(file)
+        return filename
+
+
+
+    async def trim(self, message):
+
+        msgSplit = message.content.split(' ')
+        try:
+            start = msgSplit[2]
+            end = msgSplit[3]
+        except:
+            return
+
+        await message.add_reaction(emoji='⌚')
+
+        filename = await self.saveAttachmentOrRef(message)
+        if filename == None:
+            return
+
+        clip = VideoFileClip(f'./temp/{filename}')
+
+        if float(end) > clip.duration:
+            await message.reply('Chosen range longer than source vid, aborting...')
+            return
+
+        clip = clip.subclip(start, end)
+
+        clip.resize(width=420).write_videofile('./temp/trimmed.mp4')
+        await message.reply(file=discord.File(f'./temp/trimmed.mp4'))
+
+
+
     async def add(self, message):
 
         if len(self.vidsToMerge) == 4:
             await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
             return
+
         referencedMessage = await message.channel.fetch_message(message.reference.message_id)
+        if referencedMessage.attachments == []:
+            return
+
         self.vidsToMerge.append(referencedMessage)
         await referencedMessage.add_reaction(emoji='🎬')
 
@@ -203,7 +259,6 @@ class ytpmv:
 
     async def reset(self, message):
         self.vidsToMerge = []
-        self.fileNames = []
         await message.add_reaction(emoji="👌")
 
 
