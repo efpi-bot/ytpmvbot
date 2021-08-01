@@ -126,7 +126,9 @@ class ytpmv:
             return
 
         #RENDER YTPMV
-        await self.renderYTPMV(notes, bpm)
+        if await self.renderYTPMV(notes, bpm) == 'error':
+            await message.reply('wrong syntax, aborting...')
+            return
 
         #SEND FILE TO DISCORD
         try:
@@ -180,8 +182,11 @@ class ytpmv:
         timer = 0.0
         for i in range(len(notes)):
 
-            length = float(notes[i].split('/')[1])*60/bpm
-            pitch = notes[i].split('/')[0]
+            try:
+                length = float(notes[i].split('/')[1])*60/bpm
+                pitch = notes[i].split('/')[0]
+            except:
+                return 'error'
 
             if pitch != '':
 
@@ -239,7 +244,7 @@ class ytpmv:
             except:
                 return
 
-        filename = attachment.filename
+        filename = 'sample_' + attachment.filename
         print(filename)
         file = open(f'./temp/{filename}', 'wb')
         await attachment.save(file)
