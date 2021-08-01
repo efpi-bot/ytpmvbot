@@ -169,7 +169,12 @@ class ytpmv:
                 uniqueNotes.append(int(notePitch))
 
         for i in uniqueNotes:
-            pitchedSample = ffmpeg.input('temp/samp1.webm').audio.filter('rubberband', pitch=2**(i/12))
+
+            rateFromPitch = 2**(i/12)
+            if 100 < rateFromPitch < 0.01:
+                return 'error'
+
+            pitchedSample = ffmpeg.input('temp/samp1.webm').audio.filter('rubberband', pitch=rateFromPitch)
             out = ffmpeg.output(pitchedSample, f'temp/samp{i}.ogg')
             try:
                 out.run()
@@ -277,7 +282,7 @@ class ytpmv:
 
         if float(end) > clip.duration:
             end = clip.duration
-            
+
         clip = clip.subclip(start, end)
 
         clip.resize(width=420).write_videofile('./temp/trimmed.webm', codec=self.codec)
