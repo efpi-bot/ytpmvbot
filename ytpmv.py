@@ -15,6 +15,29 @@ class ytpmv:
 
 
 
+    async def sendHelp(self, message):
+
+        embed = discord.Embed(
+            colour=discord.Colour.teal(),
+            title='YTPMVbot help - click for more',
+            url='https://github.com/efpi-bot/ytpmvbot',
+            )
+        embed.add_field(
+            name='Available commands:',
+            value="""• ytpmvbot help
+            • ytpmvbot pitch/duration [...]
+            • ytpmvbot trim
+            • ytpmvbot volume
+            • ytpmvbot add
+            • ytpmvbot merge
+            • ytpmvbot reset
+            """
+            )
+
+        await message.channel.send(embed=embed)
+
+
+
     async def addToQueue(self, message):
         self.msgQueue.append(message)
 
@@ -36,11 +59,15 @@ class ytpmv:
         elif message.content.lower() == 'ytpmvbot reset':
             await self.reset(message)
 
+        elif message.content.lower() == 'ytpmvbot help':
+            await self.sendHelp(message)
+
         elif message.content.lower().startswith('ytpmvbot trim '):
             await self.trim(message)
 
         elif message.content.lower().startswith('ytpmvbot volume '):
             await self.volume(message)
+
 
         elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
@@ -281,7 +308,11 @@ class ytpmv:
             await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
             return
 
-        referencedMessage = await message.channel.fetch_message(message.reference.message_id)
+        try:
+            referencedMessage = await message.channel.fetch_message(message.reference.message_id)
+        except:
+            return
+            
         if referencedMessage.attachments == []:
             return
 
