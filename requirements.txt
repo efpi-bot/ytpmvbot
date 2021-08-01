@@ -1,0 +1,5 @@
+ffmpeg_python==0.2.0
+moviepy==1.0.3
+discord.py==1.7.3
+discord==1.7.3
+ffmpeg==1.4
