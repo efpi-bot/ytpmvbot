@@ -129,7 +129,10 @@ class ytpmv:
         await self.renderYTPMV(notes, bpm)
 
         #SEND FILE TO DISCORD
-        await message.reply(file=discord.File(f'./temp/ytpmvbot.mp4'))
+        try:
+            await message.reply(file=discord.File(f'./temp/ytpmvbot.mp4'))
+        except:
+            await message.reply('File too big, aborting...')
 
 
 
@@ -268,7 +271,13 @@ class ytpmv:
         clip = clip.subclip(start, end)
 
         clip.resize(width=420).write_videofile('./temp/trimmed.mp4')
-        await message.reply(file=discord.File(f'./temp/trimmed.mp4'))
+
+
+        #SEND FILE TO DISCORD
+        try:
+            await message.reply(file=discord.File(f'./temp/trimmed.mp4'))
+        except:
+            await message.reply('File too big, aborting...')
 
         #CLOSE CLIPS
         clip.close()
@@ -296,7 +305,12 @@ class ytpmv:
             return
 
         clip.resize(width=420).write_videofile('./temp/volume.mp4')
-        await message.reply(file=discord.File(f'./temp/volume.mp4'))
+
+        #SEND FILE TO DISCORD
+        try:
+            await message.reply(file=discord.File(f'./temp/volume.mp4'))
+        except:
+            await message.reply('File too big, aborting...')
 
         #CLOSE CLIPS
         clip.close()
@@ -361,7 +375,12 @@ class ytpmv:
             return
         
         final_clip.resize(width=420).write_videofile(f'./temp/ytpmvmbot.mp4')
-        await message.reply(file=discord.File(f'./temp/ytpmvmbot.mp4'))
+
+        #SEND FILE TO DISCORD
+        try:
+            await message.reply(file=discord.File(f'./temp/ytpmvmbot.mp4'))
+        except:
+            await message.reply('File too big, aborting...')
 
         #CLOSE CLIPS
         for i in tracks:
