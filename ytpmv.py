@@ -170,7 +170,7 @@ class ytpmv:
 
         for i in uniqueNotes:
             pitchedSample = ffmpeg.input('temp/samp1.webm').audio.filter('rubberband', pitch=2**(i/12))
-            out = ffmpeg.output(pitchedSample, f'temp/samp{i}.mp3')
+            out = ffmpeg.output(pitchedSample, f'temp/samp{i}.ogg')
             try:
                 out.run()
             except:
@@ -194,7 +194,7 @@ class ytpmv:
 
             if pitch != '':
 
-                audio = AudioFileClip(f'temp/samp{pitch}.mp3')
+                audio = AudioFileClip(f'temp/samp{pitch}.ogg')
                 clip = VideoFileClip(f"temp/samp{flipSwitch}.webm")
 
                 clip.start = timer
