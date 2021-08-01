@@ -276,9 +276,8 @@ class ytpmv:
         clip = VideoFileClip(f'./temp/{filename}')
 
         if float(end) > clip.duration:
-            await message.reply('Chosen range longer than source vid, aborting...')
-            return
-
+            end = clip.duration
+            
         clip = clip.subclip(start, end)
 
         clip.resize(width=420).write_videofile('./temp/trimmed.webm', codec=self.codec)
