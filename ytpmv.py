@@ -196,7 +196,7 @@ class ytpmv:
                 clip.start = timer
                 audio.start = timer
 
-                if length < clip.duration:
+                if length < clip.duration and length < audio.duration:
                     clip.end = timer+length
                     audio.end = timer+length
                 else:
@@ -243,6 +243,8 @@ class ytpmv:
                 attachment = referencedMessage.attachments[0]
             except:
                 return
+        if not attachment.content_type.startswith('video'):
+            return
 
         filename = 'sample_' + attachment.filename
         print(filename)
