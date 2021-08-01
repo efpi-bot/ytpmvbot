@@ -12,6 +12,7 @@ class ytpmv:
         self.msgQueue = []
         self.isBusy = False
         self.vidsToMerge = []
+        self.codec = 'libvpx'
 
 
 
@@ -25,13 +26,13 @@ class ytpmv:
         embed.add_field(
             name='Available commands:',
             value="""• ytpmvbot help
-            • ytpmvbot pitch/duration [...]
-            • ytpmvbot trim
-            • ytpmvbot volume
-            • ytpmvbot add
-            • ytpmvbot merge
-            • ytpmvbot reset
-            """
+• ytpmvbot pitch/duration [...]
+• ytpmvbot trim
+• ytpmvbot volume
+• ytpmvbot add
+• ytpmvbot merge
+• ytpmvbot reset
+"""
             )
 
         await message.channel.send(embed=embed)
@@ -132,7 +133,7 @@ class ytpmv:
 
         #SEND FILE TO DISCORD
         try:
-            await message.reply(file=discord.File(f'./temp/ytpmvbot.mp4'))
+            await message.reply(file=discord.File(f'./temp/ytpmvbot.webm'))
         except:
             await message.reply('File too big, aborting...')
 
@@ -143,10 +144,10 @@ class ytpmv:
         inVid = ffmpeg.input(f'./temp/{filename}')
         inFlipVid = inVid.video.hflip()
 
-        outVid = ffmpeg.output(inVid, 'temp/samp1.mp4')
+        outVid = ffmpeg.output(inVid, 'temp/samp1.webm')
         outVid.run()
 
-        outFlip = ffmpeg.output(inFlipVid, 'temp/samp-1.mp4')
+        outFlip = ffmpeg.output(inFlipVid, 'temp/samp-1.webm')
         outFlip.run()
 
 
@@ -168,7 +169,7 @@ class ytpmv:
                 uniqueNotes.append(int(notePitch))
 
         for i in uniqueNotes:
-            pitchedSample = ffmpeg.input('temp/samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
+            pitchedSample = ffmpeg.input('temp/samp1.webm').audio.filter('rubberband', pitch=2**(i/12))
             out = ffmpeg.output(pitchedSample, f'temp/samp{i}.mp3')
             try:
                 out.run()
@@ -194,7 +195,7 @@ class ytpmv:
             if pitch != '':
 
                 audio = AudioFileClip(f'temp/samp{pitch}.mp3')
-                clip = VideoFileClip(f"temp/samp{flipSwitch}.mp4")
+                clip = VideoFileClip(f"temp/samp{flipSwitch}.webm")
 
                 clip.start = timer
                 audio.start = timer
@@ -217,7 +218,7 @@ class ytpmv:
         final_Aclip = CompositeAudioClip(timelineA)
         final_Vclip.audio = final_Aclip
 
-        final_Vclip.resize(width=420).write_videofile(f"./temp/ytpmvbot.mp4")
+        final_Vclip.resize(width=420).write_videofile(f"./temp/ytpmvbot.webm", codec=self.codec)
 
         #CLOSE CLIPS
         for i in timelineV:
@@ -280,12 +281,12 @@ class ytpmv:
 
         clip = clip.subclip(start, end)
 
-        clip.resize(width=420).write_videofile('./temp/trimmed.mp4')
+        clip.resize(width=420).write_videofile('./temp/trimmed.webm', codec=self.codec)
 
 
         #SEND FILE TO DISCORD
         try:
-            await message.reply(file=discord.File(f'./temp/trimmed.mp4'))
+            await message.reply(file=discord.File(f'./temp/trimmed.webm'))
         except:
             await message.reply('File too big, aborting...')
 
@@ -314,11 +315,11 @@ class ytpmv:
         except:
             return
 
-        clip.resize(width=420).write_videofile('./temp/volume.mp4')
+        clip.resize(width=420).write_videofile('./temp/volume.webm', codec=self.codec)
 
         #SEND FILE TO DISCORD
         try:
-            await message.reply(file=discord.File(f'./temp/volume.mp4'))
+            await message.reply(file=discord.File(f'./temp/volume.webm'))
         except:
             await message.reply('File too big, aborting...')
 
@@ -384,11 +385,11 @@ class ytpmv:
             await message.reply('Correct number of videos to merge is 2 or 4. Send \'ytpmvbot reset\' to start over.')
             return
         
-        final_clip.resize(width=420).write_videofile(f'./temp/ytpmvmbot.mp4')
+        final_clip.resize(width=420).write_videofile(f'./temp/ytpmvmbot.webm', codec=self.codec)
 
         #SEND FILE TO DISCORD
         try:
-            await message.reply(file=discord.File(f'./temp/ytpmvmbot.mp4'))
+            await message.reply(file=discord.File(f'./temp/ytpmvmbot.webm'))
         except:
             await message.reply('File too big, aborting...')
 
