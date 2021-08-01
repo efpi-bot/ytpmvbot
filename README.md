@@ -35,6 +35,12 @@ Not tested on Windows, probably won't work (todo docker)
   - sudo apt install ffmpeg
 - create file named 'key' and put your bot's token inside
 - run ytpmv.py with python
+### Bot permissions:
+When adding your bot to a server set following permissions:
+  - send messages
+  - attach files
+  - read message history
+  - add reactions
 
 ## FAQ:
 ### Wait so now I can make bad YTPMVs on my phone?
