@@ -168,7 +168,10 @@ class ytpmv:
                 uniqueNotes.append(int(notePitch))
 
         for i in uniqueNotes:
-            pitchedSample = ffmpeg.input('temp/samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
+            try:
+                pitchedSample = ffmpeg.input('temp/samp1.mp4').audio.filter('rubberband', pitch=2**(i/12))
+            except:
+                return 'error'
             out = ffmpeg.output(pitchedSample, f'temp/samp{i}.mp3')
             out.run()
 
