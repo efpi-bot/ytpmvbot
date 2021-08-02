@@ -4,6 +4,7 @@ import shutil
 from moviepy.editor import *
 import discord
 import asyncio
+import re
 
 
 class ytpmv:
@@ -14,6 +15,9 @@ class ytpmv:
         self.vidsToMerge = []
         self.codec = 'libvpx'
 
+        self.notesRe = re.compile('\\d*\\/\\d+\\.?\\d*')
+        self.repetitionRe = re.compile('\\[.*?\\]\\d+')
+        self.bothRe = re.compile('\\d*\\/\\d+\\.?\\d*|\\[.*?\\]\\d+')
 
 
     async def sendHelp(self, message):
@@ -40,6 +44,10 @@ class ytpmv:
 
 
     async def addToQueue(self, message):
+
+        #REPLACE LINE BREAKS WITH SPACES
+        message.content = message.content.replace('\n', ' ')
+
         self.msgQueue.append(message)
 
 
@@ -76,7 +84,7 @@ class ytpmv:
             await self.volume(message)
 
 
-        elif message.content.replace('\n',' ').lower().startswith('ytpmvbot '):
+        elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
 
 
@@ -94,8 +102,6 @@ class ytpmv:
 
     async def run(self, message):
 
-        content = message.content.replace('\n',' ')
-
         #CHECK FOR ATTACHMENT
         if message.attachments == [] and message.reference == None:
             return
@@ -103,15 +109,21 @@ class ytpmv:
         #ADD REACTION
         await message.add_reaction(emoji='⌚')
 
-        #CREATE ARRAY OF NOTES
-        notes = content[9:].split(' ')
 
-        #REMOVE DOUBLE SPACES
-        strippedNotes = []
-        for i in notes:
-            if i != '':
-                strippedNotes.append(i)
-        notes = strippedNotes
+        #REGEX NOTES
+        notes = self.bothRe.findall(message.content)
+        print(notes)
+
+
+        #CREATE ARRAY OF NOTES
+        # notes = content[9:].split(' ')
+
+        # #REMOVE DOUBLE SPACES
+        # strippedNotes = []
+        # for i in notes:
+        #     if i != '':
+        #         strippedNotes.append(i)
+        # notes = strippedNotes
 
 
         #SET BPM
@@ -442,7 +454,7 @@ async def on_message(message):
         return
 
 
-    if message.content.replace('\n',' ').lower().startswith('ytpmvbot '):
+    if message.content.lower().startswith('ytpmvbot'):
         await ytpmv.addToQueue(message)
 
 
