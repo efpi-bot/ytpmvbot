@@ -102,6 +102,14 @@ class ytpmv:
 
         #CREATE ARRAY OF NOTES
         notes = content[9:].split(' ')
+        
+        #REMOVE DOUBLE SPACES
+        strippedNotes = []
+        for i in notes:
+            if i != '':
+                strippedNotes.append(i)
+        notes = strippedNotes
+
 
         #SET BPM
         bpm = 120
