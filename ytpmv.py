@@ -112,19 +112,19 @@ class ytpmv:
 
         #REGEX NOTES
         notes = self.bothRe.findall(message.content)
-        print(notes)
 
-
-        #CREATE ARRAY OF NOTES
-        # notes = content[9:].split(' ')
-
-        # #REMOVE DOUBLE SPACES
-        # strippedNotes = []
-        # for i in notes:
-        #     if i != '':
-        #         strippedNotes.append(i)
-        # notes = strippedNotes
-
+        #PARSE REPEATS AND MAKE AN ARRAY OF NOTES
+        parsedNotes = []
+        for i in notes:
+            if self.repetitionRe.match(i) == None:
+                parsedNotes.append(i)
+            else:
+                count = int(i.split(']')[1])
+                repeatNotes = self.notesRe.findall(i)
+                for j in range(count):
+                    for k in repeatNotes:
+                        parsedNotes.append(k)
+        notes = parsedNotes
 
         #SET BPM
         bpm = 120
