@@ -18,6 +18,7 @@ class ytpmv:
         self.notesRe = re.compile('\\d*\\/\\d+\\.?\\d*')
         self.repetitionRe = re.compile('\\[[0-9\\ .\\/]*\\]\\d+')
         self.bothRe = re.compile('\\d*\\/\\d+\\.?\\d*|\\[[0-9\\ .\\/]*\\]\\d+')
+        self.bpmRe = re.compile('-bpm\\ +\\d+')
 
 
     async def sendHelp(self, message):
@@ -125,15 +126,14 @@ class ytpmv:
                     for k in repeatNotes:
                         parsedNotes.append(k)
         notes = parsedNotes
-        print(notes)
 
         #SET BPM
-        bpm = 120
-        if '-bpm' in notes:
-            bpm = float(notes[notes.index('-bpm') + 1])
-            notes.pop(notes.index('-bpm')+1)
-            notes.pop(notes.index('-bpm'))
-
+        try:
+            bpm = self.bpmRe.findall(message.content)[0]
+            numberRe = re.compile('\\d+')
+            bpm = int(numberRe.findall(bpm)[0])
+        except:
+            bpm = 120
 
         #SAVE ORIGINAL SAMPLE
         filename = await self.saveAttachmentOrRef(message)
@@ -243,9 +243,12 @@ class ytpmv:
 
             timer += length
 
-        final_Vclip = CompositeVideoClip(timelineV)
-        final_Aclip = CompositeAudioClip(timelineA)
-        final_Vclip.audio = final_Aclip
+        try:
+            final_Vclip = CompositeVideoClip(timelineV)
+            final_Aclip = CompositeAudioClip(timelineA)
+            final_Vclip.audio = final_Aclip
+        except:
+            return 'error'
 
         final_Vclip.resize(width=420).write_videofile(f"./temp/ytpmvbot.webm", codec=self.codec)
 
