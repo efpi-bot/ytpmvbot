@@ -286,6 +286,7 @@ class ytpmv:
         print(filename)
         file = open(f'./temp/{filename}', 'wb')
         await attachment.save(file)
+        file.close()
         return filename
 
 
@@ -395,6 +396,7 @@ class ytpmv:
             attachment = i.attachments[0]
             file = open(f'./temp/merge{counter}', 'wb')
             await attachment.save(file)
+            file.close()
             counter += 1
 
         tracks = []
