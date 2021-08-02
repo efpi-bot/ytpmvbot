@@ -213,6 +213,21 @@ class ytpmv:
         timelineA = []
         flipSwitch = 1
         timer = 0.0
+
+
+        #MAKE FILE DICTS
+        audioDict = {}
+        for i in notes:
+            pitch = i.split('/')[0]
+            if pitch in audioDict.keys():
+                continue
+            elif pitch != '':
+                audioDict.update({pitch: AudioFileClip(f'temp/samp{pitch}.ogg')})
+            else:
+                continue
+
+        videoDict = {'samp1': VideoFileClip(f"temp/samp1.webm"), 'samp-1': VideoFileClip(f"temp/samp-1.webm")}
+
         for i in range(len(notes)):
 
             try:
@@ -223,8 +238,8 @@ class ytpmv:
 
             if pitch != '':
 
-                audio = AudioFileClip(f'temp/samp{pitch}.ogg')
-                clip = VideoFileClip(f"temp/samp{flipSwitch}.webm")
+                audio = audioDict[pitch].copy()
+                clip = videoDict[f'samp{flipSwitch}'].copy()
 
                 clip.start = timer
                 audio.start = timer
@@ -253,6 +268,12 @@ class ytpmv:
         final_Vclip.resize(width=420).write_videofile(f"./temp/ytpmvbot.webm", codec=self.codec)
 
         #CLOSE CLIPS
+        for i in audioDict.values():
+            i.close()
+
+        for i in videoDict.values():
+            i.close()
+
         for i in timelineV:
             i.close()
 
