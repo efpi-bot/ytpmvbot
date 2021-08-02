@@ -345,6 +345,9 @@ class ytpmv:
         if referencedMessage.attachments == []:
             return
 
+        elif not referencedMessage.attachments[0].content_type.startswith('video'):
+            return
+
         self.vidsToMerge.append(referencedMessage)
         await referencedMessage.add_reaction(emoji='🎬')
 
