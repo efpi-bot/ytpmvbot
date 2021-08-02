@@ -60,6 +60,9 @@ class ytpmv:
         elif message.content.lower() == 'ytpmvbot merge':
             await self.merge(message)
 
+        elif message.content.lower() == 'ytpmvbot concat':
+            await self.merge(message, True)
+
         elif message.content.lower() == 'ytpmvbot reset':
             await self.reset(message)
 
@@ -102,7 +105,7 @@ class ytpmv:
 
         #CREATE ARRAY OF NOTES
         notes = content[9:].split(' ')
-        
+
         #REMOVE DOUBLE SPACES
         strippedNotes = []
         for i in notes:
@@ -367,7 +370,7 @@ class ytpmv:
 
 
 
-    async def merge(self, message):
+    async def merge(self, message, concat=False):
 
         await message.add_reaction(emoji='⌚')
 
@@ -385,7 +388,10 @@ class ytpmv:
             tracks.append(clip)
             counter += 1
 
-        if len(self.vidsToMerge) == 2:
+        if concat == True:
+            final_clip = concatenate_videoclips(tracks)
+
+        elif len(self.vidsToMerge) == 2:
             final_clip = clips_array([tracks])
 
         elif len(self.vidsToMerge) == 4:
