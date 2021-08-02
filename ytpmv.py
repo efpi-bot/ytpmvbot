@@ -73,7 +73,7 @@ class ytpmv:
             await self.volume(message)
 
 
-        elif message.content.lower().startswith('ytpmvbot '):
+        elif message.content.replace('\n',' ').lower().startswith('ytpmvbot '):
             await self.run(message)
 
 
@@ -91,7 +91,7 @@ class ytpmv:
 
     async def run(self, message):
 
-        content = message.content
+        content = message.content.replace('\n',' ')
 
         #CHECK FOR ATTACHMENT
         if message.attachments == [] and message.reference == None:
@@ -428,7 +428,7 @@ async def on_message(message):
         return
 
 
-    if message.content.lower().startswith('ytpmvbot '):
+    if message.content.replace('\n',' ').lower().startswith('ytpmvbot '):
         await ytpmv.addToQueue(message)
 
 
