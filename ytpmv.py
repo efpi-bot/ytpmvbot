@@ -388,7 +388,7 @@ class ytpmv:
             tracks.append(clip)
             counter += 1
 
-        if concat == True:
+        if self.vidsToMerge != [] and concat == True:
             final_clip = concatenate_videoclips(tracks)
 
         elif len(self.vidsToMerge) == 2:
