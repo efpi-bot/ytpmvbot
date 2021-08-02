@@ -16,8 +16,8 @@ class ytpmv:
         self.codec = 'libvpx'
 
         self.notesRe = re.compile('\\d*\\/\\d+\\.?\\d*')
-        self.repetitionRe = re.compile('\\[.*?\\]\\d+')
-        self.bothRe = re.compile('\\d*\\/\\d+\\.?\\d*|\\[.*?\\]\\d+')
+        self.repetitionRe = re.compile('\\[[0-9\\ .\\/]*\\]\\d+')
+        self.bothRe = re.compile('\\d*\\/\\d+\\.?\\d*|\\[[0-9\\ .\\/]*\\]\\d+')
 
 
     async def sendHelp(self, message):
@@ -125,6 +125,7 @@ class ytpmv:
                     for k in repeatNotes:
                         parsedNotes.append(k)
         notes = parsedNotes
+        print(notes)
 
         #SET BPM
         bpm = 120
@@ -179,7 +180,7 @@ class ytpmv:
 
         uniqueNotes = []
         for i in notes:
-            notePitch = i.split('/')[0]
+            notePitch = i.split('/')[0][:3]
 
             if notePitch == '':
                 continue
