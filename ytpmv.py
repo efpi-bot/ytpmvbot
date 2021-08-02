@@ -15,9 +15,9 @@ class ytpmv:
         self.vidsToMerge = []
         self.codec = 'libvpx'
 
-        self.notesRe = re.compile('\\d*\\/\\d+\\.?\\d*')
-        self.repetitionRe = re.compile('\\[[0-9\\ .\\/]*\\]\\d+')
-        self.bothRe = re.compile('\\d*\\/\\d+\\.?\\d*|\\[[0-9\\ .\\/]*\\]\\d+')
+        self.notesRe = re.compile('-?\\d*\\/\\d+\\.?\\d*')
+        self.repetitionRe = re.compile('\\[[\\d\\/\\.\\ -]*\\]\\d+')
+        self.bothRe = re.compile('-?\\d*\\/\\d+\\.?\\d*|\\[[\\d\\/\\.\\ -]*\\]\\d+')
         self.bpmRe = re.compile('-bpm\\ +\\d+')
 
 
