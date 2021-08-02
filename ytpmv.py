@@ -51,6 +51,9 @@ class ytpmv:
         self.isBusy == True
         message = self.msgQueue[0]
 
+        #CLEAR TEMP
+        self.clearTemp()
+
         if message.content.lower() == 'ytpmvbot add':
             await self.add(message)
 
@@ -93,9 +96,6 @@ class ytpmv:
         #CHECK FOR ATTACHMENT
         if message.attachments == [] and message.reference == None:
             return
-
-        #RESET TEMP FOLDER
-        self.clearTemp()
 
         #ADD REACTION
         await message.add_reaction(emoji='⌚')
@@ -363,9 +363,6 @@ class ytpmv:
 
         await message.add_reaction(emoji='⌚')
 
-        #RESET TEMP FOLDER
-        self.clearTemp()
-        
         counter = 0
         for i in self.vidsToMerge:
             attachment = i.attachments[0]
