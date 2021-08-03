@@ -151,6 +151,7 @@ class ytpmv:
 
     def parseMessage(self, content):
 
+        content = self.addSpacesInbetweenBrackets(content)
         content = self.deleteDoubleSpaces(content)
         notes, bpm = self.setBpm(content)
         notes = self.parseNotes(notes)
@@ -206,6 +207,21 @@ class ytpmv:
             finalArray.append([pitch, duration])
         return finalArray
 
+
+    def addSpacesInbetweenBrackets(self, content):
+        newcontent = []
+        for i in range(len(content)):
+            if content[i] == '[' and content[i+1] != ' ':
+                newcontent.append(content[i])
+                newcontent.append(' ')
+            elif content[i] == ']' and content[i-1] != ' ':
+                newcontent.append(' ')
+                newcontent.append(content[i])
+            else:
+                newcontent.append(content[i])
+
+        newcontent = ''.join(newcontent)        
+        return newcontent
 
     def deleteDoubleSpaces(self, content):
         notes = content.split(' ')
