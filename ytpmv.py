@@ -127,7 +127,11 @@ class ytpmv:
 
         #PARSE REPEATS
         notes = ' '.join(notes)
-        notes = self.parseRepeats(notes)
+        try:
+            notes = self.parseRepeats(notes)
+        except:
+            await message.reply('parsing error')
+            return
 
 
         #SAVE ORIGINAL SAMPLE
