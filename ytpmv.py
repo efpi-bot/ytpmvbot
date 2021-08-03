@@ -168,7 +168,7 @@ class ytpmv:
 
     def parseNotes(self, notes):
         notes = ' '.join(notes)
-        
+
         depth = 0
         notes = notes.split(' ')
         maxdepth = 0
@@ -207,7 +207,7 @@ class ytpmv:
             pitch = i[0].split('/')[0]
 
             if pitch != '':
-                pitch = int(pitch)
+                pitch = float(pitch)
 
             duration = float(i[0].split('/')[1])
             finalArray.append([pitch, duration])
@@ -219,7 +219,7 @@ class ytpmv:
         bpm = 120
         if '-bpm' in notes:
             index = notes.index('-bpm') + 1
-            bpm = int(notes[index])
+            bpm = float(notes[index])
             notes.pop(index-1)
             notes.pop(index-1)
 
