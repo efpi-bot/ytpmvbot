@@ -150,8 +150,10 @@ class ytpmv:
             return
 
         #RENDER YTPMV
-        if await self.renderYTPMV(notes, bpm) == 'error':
-            await message.reply('wrong syntax, aborting...')
+        try:
+            await self.renderYTPMV(notes, bpm)
+        except:
+            await message.reply('video rendering error')
             return
 
         #SEND FILE TO DISCORD
