@@ -153,14 +153,14 @@ class ytpmv:
 
         content = self.addSpacesInbetweenBrackets(content)
         content = self.deleteDoubleSpaces(content)
-        notes, bpm = self.setBpm(content)
-        notes = self.parseNotes(notes)
+        notes, bpm, pitchOffset = self.parseArgs(content)
+        notes = self.parseNotes(notes, pitchOffset)
 
         return notes, bpm
 
 
 
-    def parseNotes(self, notes):
+    def parseNotes(self, notes, pitchOffset):
         notes = ' '.join(notes)
 
         depth = 0
@@ -201,7 +201,7 @@ class ytpmv:
             pitch = i[0].split('/')[0]
 
             if pitch != '':
-                pitch = float(pitch)
+                pitch = float(pitch) + pitchOffset
 
             duration = float(i[0].split('/')[1])
             finalArray.append([pitch, duration])
@@ -233,7 +233,7 @@ class ytpmv:
         return notes
 
 
-    def setBpm(self, notes):
+    def parseArgs(self, notes):
         bpm = 120
         if '-bpm' in notes:
             index = notes.index('-bpm') + 1
@@ -244,7 +244,17 @@ class ytpmv:
         if not 30 < bpm < 600:
             raise Exception
 
-        return notes, bpm
+        pitchOffset = 0
+        if '-pitchoffset' in notes:
+            index = notes.index('-pitchoffset') + 1
+            pitchOffset = float(notes[index])
+            notes.pop(index-1)
+            notes.pop(index-1)
+
+        if not -25 < pitchOffset < 25:
+            raise Exception
+
+        return notes, bpm, pitchOffset
 
 
     async def renderFlippedVid(self,filename):
