@@ -95,7 +95,6 @@ class ytpmv:
         os.mkdir('temp')
 
 
-
     async def run(self, message):
 
         #CHECK FOR ATTACHMENT
@@ -106,25 +105,9 @@ class ytpmv:
         await message.add_reaction(emoji='⌚')
 
 
-        #DELETE DOUBLE SPACES
-        notes = message.content.split(' ')
-        newnotes = []
-        for i in notes:
-            if i != '':
-                newnotes.append(i)
-        notes = newnotes[1:]
-
-        #SET AND STRIP BPM
+        #PARSE MESSAGE
         try:
-            notes, bpm = await self.setBpm(notes)
-        except:
-            await message.reply('Bpm error')
-            return
-
-
-        #PARSE NOTES
-        try:
-            notes = self.parseNotes(notes)
+            notes, bpm = self.parseMessage(message.content)
         except:
             await message.reply('Parsing error')
             return
@@ -163,6 +146,16 @@ class ytpmv:
             await message.reply(file=discord.File(f'./temp/ytpmvbot.webm'))
         except:
             await message.reply('File too big')
+
+
+
+    def parseMessage(self, content):
+
+        content = self.deleteDoubleSpaces(content)
+        notes, bpm = self.setBpm(content)
+        notes = self.parseNotes(notes)
+
+        return notes, bpm
 
 
 
@@ -214,8 +207,17 @@ class ytpmv:
         return finalArray
 
 
+    def deleteDoubleSpaces(self, content):
+        notes = content.split(' ')
+        newnotes = []
+        for i in notes:
+            if i != '':
+                newnotes.append(i)
+        notes = newnotes[1:]
+        return notes
 
-    async def setBpm(self, notes):
+
+    def setBpm(self, notes):
         bpm = 120
         if '-bpm' in notes:
             index = notes.index('-bpm') + 1
@@ -227,7 +229,6 @@ class ytpmv:
             raise Exception
 
         return notes, bpm
-
 
 
     async def renderFlippedVid(self,filename):
