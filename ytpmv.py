@@ -15,11 +15,6 @@ class ytpmv:
         self.vidsToMerge = []
         self.codec = 'libvpx'
 
-        self.notesRe = re.compile('-?\\d*\\/\\d+\\.?\\d*')
-        self.repetitionRe = re.compile('\\[[\\d\\/\\.\\ -]*\\]\\d+')
-        self.bothRe = re.compile('-?\\d*\\/\\d+\\.?\\d*|\\[[\\d\\/\\.\\ -]*\\]\\d+')
-        self.bpmRe = re.compile('-bpm\\ +\\d+')
-
 
     async def sendHelp(self, message):
 
@@ -111,29 +106,29 @@ class ytpmv:
         await message.add_reaction(emoji='⌚')
 
 
-        #REGEX NOTES
-        notes = self.bothRe.findall(message.content)
-
-        #PARSE REPEATS AND MAKE AN ARRAY OF NOTES
-        parsedNotes = []
+        #DELETE DOUBLE SPACES
+        notes = message.content.split(' ')
+        newnotes = []
         for i in notes:
-            if self.repetitionRe.match(i) == None:
-                parsedNotes.append(i)
-            else:
-                count = int(i.split(']')[1])
-                repeatNotes = self.notesRe.findall(i)
-                for j in range(count):
-                    for k in repeatNotes:
-                        parsedNotes.append(k)
-        notes = parsedNotes
+            if i != '':
+                newnotes.append(i)
+        notes = newnotes[1:]
 
         #SET BPM
-        try:
-            bpm = self.bpmRe.findall(message.content)[0]
-            numberRe = re.compile('\\d+')
-            bpm = int(numberRe.findall(bpm)[0])
-        except:
-            bpm = 120
+        bpm = 120
+        if '-bpm' in notes:
+            try:
+                index = notes.index('-bpm') + 1
+                bpm = int(notes[index])
+                notes.pop(index-1)
+                notes.pop(index-1)
+            except:
+                return
+
+        #PARSE REPEATS
+        notes = ' '.join(notes)
+        notes = self.parseRepeats(notes)
+
 
         #SAVE ORIGINAL SAMPLE
         filename = await self.saveAttachmentOrRef(message)
@@ -160,6 +155,49 @@ class ytpmv:
             await message.reply(file=discord.File(f'./temp/ytpmvbot.webm'))
         except:
             await message.reply('File too big, aborting...')
+
+
+
+    def parseRepeats(self, notes):
+
+        depth = 0
+        notes = notes.split(' ')
+        maxdepth = 0
+        deptharray = []
+        for i in notes:
+            if i=='[':
+                depth+=1
+            deptharray.append([i,depth])
+            if ']' in i:
+                depth-=1
+            if depth > maxdepth:
+                maxdepth = depth
+
+        parsedArray = []
+        while maxdepth > 0:
+            parsedArray.clear()
+            for i in range(len(deptharray)):
+                if deptharray[i] == ['[', maxdepth]:
+                    startindex = i
+                elif deptharray[i][0][0] == ']' and deptharray[i][1] == maxdepth:
+                    repeatCount = int(deptharray[i][0][1])
+                    endindex = i
+                    loop = deptharray[startindex+1:endindex]
+                    for i in range(repeatCount-1):
+                        for k in loop:
+                            parsedArray.append(k)
+                else:
+                    parsedArray.append(deptharray[i])
+
+            deptharray = parsedArray.copy()
+
+            maxdepth -= 1
+
+        finalArray = []
+        for i in deptharray:
+            finalArray.append(i[0])
+        return finalArray
+
 
 
 
