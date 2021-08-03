@@ -189,7 +189,7 @@ class ytpmv:
                 if deptharray[i] == ['[', maxdepth]:
                     startindex = i
                 elif deptharray[i][0][0] == ']' and deptharray[i][1] == maxdepth:
-                    repeatCount = int(deptharray[i][0][1])
+                    repeatCount = int(deptharray[i][0].split(']')[1])
                     endindex = i
                     loop = deptharray[startindex+1:endindex]
                     for i in range(repeatCount-1):
