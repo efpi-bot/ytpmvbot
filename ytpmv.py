@@ -114,58 +114,61 @@ class ytpmv:
                 newnotes.append(i)
         notes = newnotes[1:]
 
-        #SET BPM
-        bpm = 120
-        if '-bpm' in notes:
-            try:
-                index = notes.index('-bpm') + 1
-                bpm = int(notes[index])
-                notes.pop(index-1)
-                notes.pop(index-1)
-            except:
-                return
-
-        #PARSE REPEATS
-        notes = ' '.join(notes)
+        #SET AND STRIP BPM
         try:
-            notes = self.parseRepeats(notes)
+            notes, bpm = await self.setBpm(notes)
         except:
-            await message.reply('parsing error')
+            await message.reply('Bpm error')
+            return
+
+
+        #PARSE NOTES
+        try:
+            notes = self.parseNotes(notes)
+        except:
+            await message.reply('Parsing error')
             return
 
 
         #SAVE ORIGINAL SAMPLE
-        filename = await self.saveAttachmentOrRef(message)
-        if filename == None:
+        try:
+            filename = await self.saveAttachmentOrRef(message)
+        except:
+            await message.reply('Sample file error')
             return
 
-
         #RENDER VIDEO CLIPS
-        await self.renderFlippedVid(filename)
-
+        try:
+            await self.renderFlippedVid(filename)
+        except:
+            await message.reply('Video rendering error')
+            return
 
         #RENDER PITCHED SAMPLES
-        if await self.renderPitchedSamples(notes) == 'error':
-            await message.reply('wrong pitch value, aborting...')
+        try:
+            await self.renderPitchedSamples(notes)
+        except:
+            await message.reply('Audio rendering error')
             return
 
         #RENDER YTPMV
         try:
             await self.renderYTPMV(notes, bpm)
         except:
-            await message.reply('video rendering error')
+            await message.reply('Video rendering error')
             return
 
         #SEND FILE TO DISCORD
         try:
             await message.reply(file=discord.File(f'./temp/ytpmvbot.webm'))
         except:
-            await message.reply('File too big, aborting...')
+            await message.reply('File too big')
 
 
 
-    def parseRepeats(self, notes):
-
+    def parseNotes(self, notes):
+        notes = ' '.join(notes)
+        
         depth = 0
         notes = notes.split(' ')
         maxdepth = 0
@@ -201,9 +204,29 @@ class ytpmv:
 
         finalArray = []
         for i in deptharray:
-            finalArray.append(i[0])
+            pitch = i[0].split('/')[0]
+
+            if pitch != '':
+                pitch = int(pitch)
+
+            duration = float(i[0].split('/')[1])
+            finalArray.append([pitch, duration])
         return finalArray
 
+
+
+    async def setBpm(self, notes):
+        bpm = 120
+        if '-bpm' in notes:
+            index = notes.index('-bpm') + 1
+            bpm = int(notes[index])
+            notes.pop(index-1)
+            notes.pop(index-1)
+
+        if not 30 < bpm < 600:
+            raise Exception
+
+        return notes, bpm
 
 
 
@@ -224,30 +247,21 @@ class ytpmv:
 
         uniqueNotes = []
         for i in notes:
-            notePitch = i.split('/')[0][:3]
 
-            if notePitch == '':
+            if i[0] == '':
                 continue
 
-            try:
-                int(notePitch)
-            except:
-                return 'error'
-            if notePitch != '' and int(notePitch) not in uniqueNotes:
-                uniqueNotes.append(int(notePitch))
+            elif i[0] not in uniqueNotes:
+                uniqueNotes.append(i[0])
 
         for i in uniqueNotes:
-
             rateFromPitch = 2**(i/12)
-            if 100 < rateFromPitch < 0.01:
-                return 'error'
+            if not 0.01 < rateFromPitch < 100:
+                raise Exception
 
             pitchedSample = ffmpeg.input('temp/samp1.webm').audio.filter('rubberband', pitch=rateFromPitch)
             out = ffmpeg.output(pitchedSample, f'temp/samp{i}.ogg')
-            try:
-                out.run()
-            except:
-                return 'error'
+            out.run()
 
 
 
@@ -262,7 +276,7 @@ class ytpmv:
         #MAKE FILE DICTS
         audioDict = {}
         for i in notes:
-            pitch = i.split('/')[0]
+            pitch = i[0]
             if pitch in audioDict.keys():
                 continue
             elif pitch != '':
@@ -272,16 +286,11 @@ class ytpmv:
 
         videoDict = {'samp1': VideoFileClip(f"temp/samp1.webm"), 'samp-1': VideoFileClip(f"temp/samp-1.webm")}
 
-        for i in range(len(notes)):
-
-            try:
-                length = float(notes[i].split('/')[1])*60/bpm
-                pitch = notes[i].split('/')[0]
-            except:
-                return 'error'
-
+        for i in notes:
+            pitch = i[0]
+            length = i[1]*60/bpm
+       
             if pitch != '':
-
                 audio = audioDict[pitch].copy()
                 clip = videoDict[f'samp{flipSwitch}'].copy()
 
@@ -302,14 +311,11 @@ class ytpmv:
 
             timer += length
 
-        try:
-            final_Vclip = CompositeVideoClip(timelineV)
-            final_Aclip = CompositeAudioClip(timelineA)
-            final_Vclip.audio = final_Aclip
-        except:
-            return 'error'
-
+        final_Vclip = CompositeVideoClip(timelineV)
+        final_Aclip = CompositeAudioClip(timelineA)
+        final_Vclip.audio = final_Aclip
         final_Vclip.resize(width=420).write_videofile(f"./temp/ytpmvbot.webm", codec=self.codec)
+
 
         #CLOSE CLIPS
         for i in audioDict.values():
@@ -343,9 +349,10 @@ class ytpmv:
             try:
                 attachment = referencedMessage.attachments[0]
             except:
-                return
+                raise Exception
+
         if not attachment.content_type.startswith('video'):
-            return
+            raise Exception
 
         filename = 'sample_' + attachment.filename
         print(filename)
