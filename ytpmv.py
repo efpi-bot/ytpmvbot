@@ -64,6 +64,9 @@ class ytpmv:
         elif message.content.lower() == 'ytpmvbot merge':
             await self.merge(message)
 
+        elif message.content.lower() == 'ytpmvbot vmerge':
+            await self.merge(message, vertical=True)
+
         elif message.content.lower() == 'ytpmvbot concat':
             await self.merge(message, concat=True)
 
@@ -383,8 +386,10 @@ class ytpmv:
 
         filename = prefix + attachment.filename
         print(filename)
+
         file = open(f'./temp/{filename}', 'wb')
         await attachment.save(file)
+
         file.close()
         return filename
 
@@ -419,18 +424,15 @@ class ytpmv:
             clip.resize(width=420).write_videofile('./temp/trimmed.webm', codec=self.codec)
         except:
             await message.reply('Video rendering error')
+        else:
+            #SEND FILE TO DISCORD
+            try:
+                await message.reply(file=discord.File(f'./temp/trimmed.webm'))
+            except:
+                await message.reply('File too big')
+        finally:
+            #CLOSE CLIPS
             clip.close()
-            return
-
-
-        #SEND FILE TO DISCORD
-        try:
-            await message.reply(file=discord.File(f'./temp/trimmed.webm'))
-        except:
-            await message.reply('File too big')
-
-        #CLOSE CLIPS
-        clip.close()
 
 
 
@@ -460,23 +462,21 @@ class ytpmv:
             clip.resize(width=420).write_videofile('./temp/volume.webm', codec=self.codec)
         except:
             await message.reply('Video rendering error')
+        else:
+            #SEND FILE TO DISCORD
+            try:
+                await message.reply(file=discord.File(f'./temp/volume.webm'))
+            except:
+                await message.reply('File too big')
+        finally:
+            #CLOSE CLIPS
             clip.close()
-            return
-
-        #SEND FILE TO DISCORD
-        try:
-            await message.reply(file=discord.File(f'./temp/volume.webm'))
-        except:
-            await message.reply('File too big')
-
-        #CLOSE CLIPS
-        clip.close()
 
 
     async def add(self, message):
 
         if len(self.vidsToMerge) == 4:
-            await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
+            await message.reply('Can add max 4 videos. Send \'ytpmvbot reset\' to start over.')
             return
 
         self.vidsToMerge.append(message)
@@ -489,58 +489,70 @@ class ytpmv:
 
 
 
-    async def merge(self, message, concat=False):
+    async def merge(self, message, concat=False, vertical=False):
+
+        if len(self.vidsToMerge) < 2:
+            await message.reply('Add some videos first!')
+            return
 
         await message.add_reaction(emoji='⌚')
 
         counter = 0
+        filenames = []
         for i in self.vidsToMerge:
             #SAVE ORIGINAL SAMPLE
             try:
-                self.saveAttachmentOrRef(self, message, prefix=f'merge_{counter}')
+                filename = await self.saveAttachmentOrRef(i, prefix=f'merge_{counter}')
             except:
-                await message.reply('Video file error')
+                await message.reply('Video file error. Send \'ytpmvbot reset\' to start over.')
                 return
+
+            filenames.append(filename)
             counter += 1
 
         tracks = []
         counter = 0
-        for i in self.vidsToMerge:
-            clip = VideoFileClip(f"./temp/merge{counter}")
+        for i in filenames:
+            clip = VideoFileClip(f"./temp/{i}")
             tracks.append(clip)
             counter += 1
 
-        if self.vidsToMerge != [] and concat == True:
-            final_clip = concatenate_videoclips(tracks)
+        if concat == True:
+            final_clip = concatenate_videoclips(tracks, method='compose')
 
-        elif len(self.vidsToMerge) == 2:
-            final_clip = clips_array([tracks])
+        elif len(filenames) == 2:
 
-        elif len(self.vidsToMerge) == 4:
+            if vertical == True:
+                final_clip = clips_array([ [ tracks[0] ], [ tracks[1] ] ])
+            else:
+                final_clip = clips_array([tracks])
+
+        elif len(filenames) == 3:
+            final_clip = clips_array([tracks[:2]])
+            final_clip = clips_array([ [ final_clip ], [ tracks[2] ] ])
+
+        elif len(filenames) == 4:
             top = tracks[:2]
             bottom = tracks[2:]
-
             final_clip = clips_array([top, bottom])
-        else:
-            await message.reply('Correct number of videos to merge is 2 or 4. Send \'ytpmvbot reset\' to start over.')
-            return
-        
-        final_clip.resize(width=420).write_videofile(f'./temp/ytpmvmbot.webm', codec=self.codec)
 
-        #SEND FILE TO DISCORD
         try:
-            await message.reply(file=discord.File(f'./temp/ytpmvmbot.webm'))
+            final_clip.resize(width=420).write_videofile(f'./temp/ytpmvmbot.webm', codec=self.codec)
         except:
-            await message.reply('File too big, aborting...')
+            await message.reply('Video rendering error')
+        else:
+            #SEND FILE TO DISCORD
+            try:
+                await message.reply(file=discord.File(f'./temp/ytpmvmbot.webm'))
+            except:
+                await message.reply('File too big')
+        finally:
+            #CLOSE CLIPS
+            for i in tracks:
+                i.close()
 
-        #CLOSE CLIPS
-        for i in tracks:
-            i.close()
-
-        final_clip.close()
-
-        await self.reset(message)
-
+            final_clip.close()
+            await self.reset(message)
 
 
 #DISCORD BOT HERE
