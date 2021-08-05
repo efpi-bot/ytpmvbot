@@ -65,7 +65,7 @@ class ytpmv:
             await self.merge(message)
 
         elif message.content.lower() == 'ytpmvbot concat':
-            await self.merge(message, True)
+            await self.merge(message, concat=True)
 
         elif message.content.lower() == 'ytpmvbot reset':
             await self.reset(message)
@@ -73,10 +73,10 @@ class ytpmv:
         elif message.content.lower() == 'ytpmvbot help':
             await self.sendHelp(message)
 
-        elif message.content.lower().startswith('ytpmvbot trim '):
+        elif message.content.lower().startswith('ytpmvbot trim'):
             await self.trim(message)
 
-        elif message.content.lower().startswith('ytpmvbot volume '):
+        elif message.content.lower().startswith('ytpmvbot volume'):
             await self.volume(message)
 
 
@@ -362,11 +362,11 @@ class ytpmv:
 
 
 
-    async def saveAttachmentOrRef(self, message):
+    async def saveAttachmentOrRef(self, message, prefix='sample_'):
 
         #CHECK FOR ATTACHMENT
         if message.attachments == [] and message.reference == None:
-            return
+            raise Exception
 
         #SAVE ORIGINAL SAMPLE
         if message.attachments != []:
@@ -381,7 +381,7 @@ class ytpmv:
         if not attachment.content_type.startswith('video'):
             raise Exception
 
-        filename = 'sample_' + attachment.filename
+        filename = prefix + attachment.filename
         print(filename)
         file = open(f'./temp/{filename}', 'wb')
         await attachment.save(file)
@@ -394,32 +394,40 @@ class ytpmv:
 
         msgSplit = message.content.split(' ')
         try:
-            start = msgSplit[2]
-            end = msgSplit[3]
+            start = float(msgSplit[2])
+            end = float(msgSplit[3])
         except:
+            await message.reply('Start/end value error')
             return
 
         await message.add_reaction(emoji='⌚')
 
-        filename = await self.saveAttachmentOrRef(message)
-        if filename == None:
+        #SAVE ORIGINAL SAMPLE
+        try:
+            filename = await self.saveAttachmentOrRef(message)
+        except:
+            await message.reply('Sample file error')
             return
 
         clip = VideoFileClip(f'./temp/{filename}')
 
-        if float(end) > clip.duration:
+        if end > clip.duration:
             end = clip.duration
 
-        clip = clip.subclip(start, end)
-
-        clip.resize(width=420).write_videofile('./temp/trimmed.webm', codec=self.codec)
+        try:
+            clip = clip.subclip(start, end)
+            clip.resize(width=420).write_videofile('./temp/trimmed.webm', codec=self.codec)
+        except:
+            await message.reply('Video rendering error')
+            clip.close()
+            return
 
 
         #SEND FILE TO DISCORD
         try:
             await message.reply(file=discord.File(f'./temp/trimmed.webm'))
         except:
-            await message.reply('File too big, aborting...')
+            await message.reply('File too big')
 
         #CLOSE CLIPS
         clip.close()
@@ -432,27 +440,34 @@ class ytpmv:
         try:
             volRate = float(msgSplit[2])
         except:
+            await message.reply('Volume multiplier value error')
             return
 
         await message.add_reaction(emoji='⌚')
 
-        filename = await self.saveAttachmentOrRef(message)
-        if filename == None:
+        #SAVE ORIGINAL SAMPLE
+        try:
+            filename = await self.saveAttachmentOrRef(message)
+        except:
+            await message.reply('Sample file error')
             return
+
 
         clip = VideoFileClip(f'./temp/{filename}')
+
         try:
             clip = clip.volumex(volRate)
+            clip.resize(width=420).write_videofile('./temp/volume.webm', codec=self.codec)
         except:
+            await message.reply('Video rendering error')
+            clip.close()
             return
-
-        clip.resize(width=420).write_videofile('./temp/volume.webm', codec=self.codec)
 
         #SEND FILE TO DISCORD
         try:
             await message.reply(file=discord.File(f'./temp/volume.webm'))
         except:
-            await message.reply('File too big, aborting...')
+            await message.reply('File too big')
 
         #CLOSE CLIPS
         clip.close()
@@ -464,20 +479,8 @@ class ytpmv:
             await message.reply('Limit for merging is 4. Send \'ytpmvbot reset\' to start over.')
             return
 
-        try:
-            referencedMessage = await message.channel.fetch_message(message.reference.message_id)
-        except:
-            return
-            
-        if referencedMessage.attachments == []:
-            return
-
-        elif not referencedMessage.attachments[0].content_type.startswith('video'):
-            return
-
-        self.vidsToMerge.append(referencedMessage)
-        await referencedMessage.add_reaction(emoji='🎬')
-
+        self.vidsToMerge.append(message)
+        await message.add_reaction(emoji='🎬')
 
 
     async def reset(self, message):
@@ -492,10 +495,12 @@ class ytpmv:
 
         counter = 0
         for i in self.vidsToMerge:
-            attachment = i.attachments[0]
-            file = open(f'./temp/merge{counter}', 'wb')
-            await attachment.save(file)
-            file.close()
+            #SAVE ORIGINAL SAMPLE
+            try:
+                self.saveAttachmentOrRef(self, message, prefix=f'merge_{counter}')
+            except:
+                await message.reply('Video file error')
+                return
             counter += 1
 
         tracks = []
