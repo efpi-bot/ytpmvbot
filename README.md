@@ -24,7 +24,7 @@ To change it simply add -bpm 123 to your command
 Just add -pitchoffset 12 to pitch whole vid an octave up (or -12 for an octave down)
 
 ### Repetition
-To add repetition put your fragment into square brackets followed by number of repeats
+To add repetition put some notes into square brackets followed by number of repeats
 - ytpmvbot [ 0/0.25 3/0.25 7/0.25 12/0.25 ]4
 
 Repetitions are nestable so you can put one inside of another
