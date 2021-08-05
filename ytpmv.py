@@ -20,18 +20,18 @@ class ytpmv:
 
         embed = discord.Embed(
             colour=discord.Colour.teal(),
-            title='YTPMVbot help - click for more',
+            title='ytpmvbot help - click for more',
             url='https://github.com/efpi-bot/ytpmvbot',
             )
         embed.add_field(
             name='Available commands:',
-            value="""• ytpmvbot help
-• ytpmvbot pitch/duration [...]
+            value="""• ytpmvbot pitch/duration [...]
 • ytpmvbot trim
 • ytpmvbot volume
 • ytpmvbot add
-• ytpmvbot merge
 • ytpmvbot reset
+• ytpmvbot merge
+• ytpmvbot concat
 """
             )
 
