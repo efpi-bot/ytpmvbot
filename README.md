@@ -1,30 +1,61 @@
 # ytpmvbot
 sony vegas killer
 
-## Available commands:
-- ytpmvbot help - send help message
+## How to use
 
-- ytpmvbot pitch/duration pitch/duration pitch/duration [...] -bpm 160
-  - optionally set bpm: -bpm 123
-  - add pause by leaving pitch field empty, example: /1
-  - example: ytpmvbot 0/0.5 2/0.5 4/0.5 5/0.5 7/0.5 9/0.5 11/0.5 12/0.5 0/0.33 4/0.33 7/0.34 12/0.33 7/0.33 4/0.34 0/1
-  - reply to the message that has video attached to it or attach it directly to your 'command' message
-  
-- ytpmvbot trim start end
-  - example: ytpmvbot trim 2 3
-  
-- ytpmvbot volume multiplier
-  - example: ytpmvbot volume 0.5
-  
-- ytpmvbot add - add this video to be merged
-  - to use, reply to the message with attached video
-  - currently you can only merge 2 or 4 videos
-  
-- ytpmvbot merge - merge chosen videos into amazing multi track pyp
+### Basic usage
+ytpmvbot pitch/duration pitch/duration pitch/duration pitch/duration
 
-- ytpmvbot reset - clear 'videos to be merged' list
+- ytpmvbot 0/0.5 3/0.5 5/0.5 6/0.5 5/0.5 3/0.5 0/1.5 -2/0.25 2/0.25 0/2
+
+### Pauses
+Add pause by leaving pitch field empty
+
+ytpmvbot pitch/duration **/duration** pitch/duration
+
+- ytpmvbot 0/1 **/1** 2/1 4/1
+
+### BPM
+Default BPM is 120
+To change it simply add -bpm 123 to your command
+- ytpmvbot 0/0.5 3/0.5 5/0.5 6/0.5 5/0.5 3/0.5 0/1.5 -2/0.25 2/0.25 0/2 -bpm 100
+
+### Pitch offset
+Just add -pitchoffset 12 to pitch whole vid an octave up (or -12 for an octave down)
+
+### Repetition
+To add repetition put some notes into square brackets followed by number of repeats
+- ytpmvbot [ 0/0.25 3/0.25 7/0.25 12/0.25 ]4
+
+Repetitions are nestable so you can put one inside of another
+- ytpmvbot [ [ 0/0.25 3/0.25 7/0.25 12/0.25 ]4 [ -7/0.25 -4/0.25 0/0.25 5/0.25 ]4 ]2
+
+### Merging
+Merge up to 4 vids to make amazing multi-track pyp
+
+- reply with **ytpmvbot add** to choose videos
+- send **ytpmvbot reset** if you want to start over
+
+Then you have three possibilities:
+1) ytpmvbot merge - fit all vids on screen and play them at the same time
+2) ypmvbot vmerge - stands for vertical merge and works only for 2 vids
+3) ytpmvbot concat - concatenate vids (play them one after another)
+
+If you need more tracks just merge again
+
+### Trim
+Trim your samples with **ytpmvbot trim start end**
+
+This command will create clip from 00:03 to 00:05
+- ytpmvbot trim 3 5
+
+### Volume
+Change volume of your samples with **ytpmvbot volume multiplier**
+- ytpmvbot volume 0.5
+- ytpmvbot volume 2
+- ytpmvbot volume 0 (silence)
   
-## Setup:
+## Setup
 Not tested on Windows, probably won't work (todo docker)
 - clone this repo
 - go into its directory
@@ -35,14 +66,16 @@ Not tested on Windows, probably won't work (todo docker)
   - sudo apt install ffmpeg
 - create file named 'key' and put your bot's token inside
 - run ytpmv.py with python
-### Bot permissions:
+### Bot permissions
 When adding your bot to a server set following permissions:
   - send messages
   - attach files
   - read message history
   - add reactions
 
-## FAQ:
+## FAQ
+### It's not working please help!
+- sure, hmu on discord efpacito#0659
 ### Wait so now I can make bad YTPMVs on my phone?
 - yes
 ### Do i need RAM to run this?
