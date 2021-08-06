@@ -644,7 +644,10 @@ class ytpmv:
             if searchPhrase.lower() == song["title"].lower():
                 embed = discord.Embed.from_dict(song)
                 embed.colour = discord.Colour.blue()
-                await message.reply(embed=embed)
+                try:
+                    await message.reply(embed=embed)
+                except:
+                    await message.reply('Sry too long gonna fix it soon')
                 return
         await message.reply('No matching title. Try ytpmvbot search <phrase>')
 
