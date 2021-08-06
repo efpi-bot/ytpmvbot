@@ -558,56 +558,64 @@ class ytpmv:
             await self.reset(message)
 
 
-        def readJson(self):
-            file = open('./registered.json', 'r')
-            registeredDict = json.loads(file.read())
-            file.close()
-            return registeredDict
 
-        def writeJson(self, registeredDict):
-            file = open('./registered.json', 'w')
-            jsonfile = json.dumps(registeredDict, sort_keys=True, indent=4)
-            file.write(jsonfile)
-            file.close()
+    def readJson(self):
+        file = open('./registered.json', 'r')
+        registeredDict = json.loads(file.read())
+        file.close()
+        return registeredDict
 
-        async def registerPattern(self, message):
-            command = message.remove_prefix('ytpmvbot register').split(',')
-            if len(command) != 3:
-                await message.reply('Usage: ytpmvbot register <title>, <channel>, <pattern>')
-                return
-
-            title = command[0].strip()
-            channel = command[1].strip()
-            pattern = command[2].strip()
-            newObj =  None
+    def writeJson(self, registeredDict):
+        file = open('./registered.json', 'w')
+        jsonfile = json.dumps(registeredDict, sort_keys=True, indent=4)
+        file.write(jsonfile)
+        file.close()
 
 
-            registeredDict = self.readJson()
+    async def registerPattern(self, message):
 
-            for i in registeredDict:
+        command = message.content.split(' ')[2:]
+        command = ' '.join(command)
+        command = command.split(',')
 
-                if title.lower() == i["title"].lower():
-                    for j in i["fields"]:
-                        if channel.lower() == j["name"].lower():
-                            j["value"] = pattern
-                            await message.add_reaction(emoji='💾')
-                            return
-
-                    i["fields"].append(newField)
-                    await message.add_reaction(emoji='💾')
-                    return
-
-        def modifyRegisteredDict(self, newObj):
-            None
-
-
-            registeredDict.append({
-                "title": title,
-                "fields": [newField]
-                })
-
-            await message.add_reaction(emoji='💾')
+        if len(command) != 3:
+            await message.reply('Usage: ytpmvbot register <title>, <channel>, <pattern>')
             return
+
+        title = command[0].strip()
+        channel = command[1].strip()
+        pattern = command[2].strip()
+
+        newObj =  {
+        "title": title,
+        "fields":  [{"name":channel, "value": pattern}]
+        }
+
+        registeredDict = self.modifyRegisteredFile(newObj)
+        self.writeJson(registeredDict)
+        await message.add_reaction(emoji='💾')
+
+
+    def modifyRegisteredFile(self, newObj):
+        title = newObj["title"]
+        channel = newObj["fields"][0]["name"]
+
+        registeredDict = self.readJson()
+        existingFieldIndex = None
+        for i in registeredDict:
+            if title.lower() == i["title"].lower():
+                for field in i["fields"]:
+                    if channel.lower() == field["name"].lower():
+                        existingFieldIndex = i["fields"].index(field)
+
+                if existingFieldIndex != None:
+                    i["fields"].pop(existingFieldIndex)
+
+                i["fields"].append(newObj["fields"][0])
+                return registeredDict
+
+        registeredDict.append(newObj)
+        return registeredDict
 
 
 #DISCORD BOT HERE
