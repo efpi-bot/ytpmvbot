@@ -5,6 +5,7 @@ from moviepy.editor import *
 import discord
 import asyncio
 import re
+import json
 
 
 class ytpmv:
@@ -82,6 +83,8 @@ class ytpmv:
         elif message.content.lower().startswith('ytpmvbot volume'):
             await self.volume(message)
 
+        elif message.content.lower().startswith('ytpmvbot register'):
+            await self.registerPattern(message)
 
         elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
@@ -553,6 +556,58 @@ class ytpmv:
 
             final_clip.close()
             await self.reset(message)
+
+
+        def readJson(self):
+            file = open('./registered.json', 'r')
+            registeredDict = json.loads(file.read())
+            file.close()
+            return registeredDict
+
+        def writeJson(self, registeredDict):
+            file = open('./registered.json', 'w')
+            jsonfile = json.dumps(registeredDict, sort_keys=True, indent=4)
+            file.write(jsonfile)
+            file.close()
+
+        async def registerPattern(self, message):
+            command = message.remove_prefix('ytpmvbot register').split(',')
+            if len(command) != 3:
+                await message.reply('Usage: ytpmvbot register <title>, <channel>, <pattern>')
+                return
+
+            title = command[0].strip()
+            channel = command[1].strip()
+            pattern = command[2].strip()
+            newObj =  None
+
+
+            registeredDict = self.readJson()
+
+            for i in registeredDict:
+
+                if title.lower() == i["title"].lower():
+                    for j in i["fields"]:
+                        if channel.lower() == j["name"].lower():
+                            j["value"] = pattern
+                            await message.add_reaction(emoji='💾')
+                            return
+
+                    i["fields"].append(newField)
+                    await message.add_reaction(emoji='💾')
+                    return
+
+        def modifyRegisteredDict(self, newObj):
+            None
+
+
+            registeredDict.append({
+                "title": title,
+                "fields": [newField]
+                })
+
+            await message.add_reaction(emoji='💾')
+            return
 
 
 #DISCORD BOT HERE

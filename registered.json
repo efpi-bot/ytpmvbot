@@ -1,0 +1,28 @@
+[
+    {
+        "fields": [
+            {
+                "name": "lead",
+                "value": "1/1 2/2 3/3 4/4"
+            },
+            {
+                "name": "bass",
+                "value": "-10/1 -5/2 0/1 -3"
+            }
+        ],
+        "title": "Night of Nights"
+    },
+    {
+        "fields": [
+            {
+                "name": "lead",
+                "value": "1/1 2/2 3/3 4/4"
+            },
+            {
+                "name": "bass",
+                "value": "-10/1 -5/2 0/1 -3"
+            }
+        ],
+        "title": "Night of Nights"
+    }
+]
