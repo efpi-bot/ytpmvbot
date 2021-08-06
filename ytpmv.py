@@ -34,6 +34,9 @@ class ytpmv:
 • ytpmvbot reset
 • ytpmvbot merge
 • ytpmvbot concat
+• ytpmvbot register
+• ytpmvbot search
+• ytpmvbot show
 """
             )
 
@@ -613,7 +616,7 @@ class ytpmv:
 
         existingFieldIndex = None
 
-        try:
+        if registeredDict != []:
             for i in registeredDict:
                 if title.lower() == i["title"].lower():
                     for field in i["fields"]:
@@ -626,8 +629,6 @@ class ytpmv:
                     i["fields"].append(newObj["fields"][0])
                     i["title"] = title
                     return registeredDict
-        except:
-            None
 
         registeredDict.append(newObj)
         return registeredDict
