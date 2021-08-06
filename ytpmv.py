@@ -647,7 +647,11 @@ class ytpmv:
                 try:
                     await message.reply(embed=embed)
                 except:
-                    await message.reply('Sry too long gonna fix it soon')
+                    file = open('./temp/song.json', 'w')
+                    jsonfile = json.dumps(song, sort_keys=True, indent=4)
+                    file.write(jsonfile)
+                    file.close()
+                    await message.reply('Too many characters. Sending json file.', file=discord.File('./temp/song.json'))
                 return
         await message.reply('No matching title. Try ytpmvbot search <phrase>')
 
