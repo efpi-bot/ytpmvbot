@@ -666,6 +666,8 @@ class ytpmv:
             if searchPhrase.lower() in song["title"].lower():
                 searchResults.append(song["title"])
 
+        searchResults = sorted(searchResults, key=str.lower)
+
         if searchPhrase == '':
             searchPhrase ='all'
 
