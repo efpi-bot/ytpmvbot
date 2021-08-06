@@ -3,6 +3,7 @@ import os
 import shutil
 from moviepy.editor import *
 import discord
+from discord.ext import tasks
 import asyncio
 import re
 import json
@@ -20,7 +21,7 @@ class ytpmv:
     async def sendHelp(self, message):
 
         embed = discord.Embed(
-            colour=discord.Colour.teal(),
+            colour=discord.Colour.blue(),
             title='ytpmvbot help - click for more',
             url='https://github.com/efpi-bot/ytpmvbot',
             )
@@ -85,6 +86,12 @@ class ytpmv:
 
         elif message.content.lower().startswith('ytpmvbot register'):
             await self.registerPattern(message)
+
+        elif message.content.lower().startswith('ytpmvbot show'):
+            await self.showPattern(message)
+
+        elif message.content.lower().startswith('ytpmvbot search'):
+            await self.searchPattern(message)
 
         elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
@@ -557,8 +564,6 @@ class ytpmv:
             final_clip.close()
             await self.reset(message)
 
-
-
     def readJson(self):
         file = open('./registered.json', 'r')
         registeredDict = json.loads(file.read())
@@ -579,7 +584,7 @@ class ytpmv:
         command = command.split(',')
 
         if len(command) != 3:
-            await message.reply('Usage: ytpmvbot register <title>, <channel>, <pattern>')
+            await message.reply('Usage: ytpmvbot register <title>, <instrument>, <pattern>')
             return
 
         title = command[0].strip()
@@ -591,31 +596,76 @@ class ytpmv:
         "fields":  [{"name":channel, "value": pattern}]
         }
 
-        registeredDict = self.modifyRegisteredFile(newObj)
+        registeredDict = await self.modifyRegisteredFile(newObj)
         self.writeJson(registeredDict)
         await message.add_reaction(emoji='💾')
 
 
-    def modifyRegisteredFile(self, newObj):
+    async def modifyRegisteredFile(self, newObj):
         title = newObj["title"]
         channel = newObj["fields"][0]["name"]
 
-        registeredDict = self.readJson()
+        try:
+            registeredDict = self.readJson()
+        except:
+            await message.reply('Invalid json file.')
+            return
+
         existingFieldIndex = None
-        for i in registeredDict:
-            if title.lower() == i["title"].lower():
-                for field in i["fields"]:
-                    if channel.lower() == field["name"].lower():
-                        existingFieldIndex = i["fields"].index(field)
 
-                if existingFieldIndex != None:
-                    i["fields"].pop(existingFieldIndex)
+        try:
+            for i in registeredDict:
+                if title.lower() == i["title"].lower():
+                    for field in i["fields"]:
+                        if channel.lower() == field["name"].lower():
+                            existingFieldIndex = i["fields"].index(field)
 
-                i["fields"].append(newObj["fields"][0])
-                return registeredDict
+                    if existingFieldIndex != None:
+                        i["fields"].pop(existingFieldIndex)
+
+                    i["fields"].append(newObj["fields"][0])
+                    i["title"] = title
+                    return registeredDict
+        except:
+            None
 
         registeredDict.append(newObj)
         return registeredDict
+
+
+    async def showPattern(self, message):
+        searchPhrase = message.content.lower().split(' ')[2:]
+        searchPhrase = ' '.join(searchPhrase)
+
+        registeredDict = self.readJson()
+
+        for song in registeredDict:
+            if searchPhrase.lower() == song["title"].lower():
+                embed = discord.Embed.from_dict(song)
+                embed.colour = discord.Colour.blue()
+                await message.reply(embed=embed)
+                return
+        await message.reply('No matching title. Try ytpmvbot search <phrase>')
+
+
+    async def searchPattern(self, message):
+        searchPhrase = message.content.lower().split(' ')[2:]
+        searchPhrase = ' '.join(searchPhrase)
+
+        registeredDict = self.readJson()
+        searchResults = []
+        for song in registeredDict:
+            if searchPhrase.lower() in song["title"].lower():
+                searchResults.append(song["title"])
+
+        if searchPhrase == '':
+            searchPhrase ='all'
+
+        if searchResults != []:
+            embed = discord.Embed(title=f'Search results for {searchPhrase}:', description='\n'.join(searchResults), colour=discord.Colour.blue())
+            await message.reply(embed=embed)
+        else:
+            await message.reply('No results.')
 
 
 #DISCORD BOT HERE
@@ -624,14 +674,16 @@ KEY = open('./key').read()
 client = discord.Client()
 ytpmv = ytpmv()
 
+
+
+#BACKGROUND QUEUE CHECK
+@tasks.loop(seconds=1)
+async def bgcheck():
+    await ytpmv.checkQueue()
+
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-
-    #BACKGROUND QUEUE CHECK
-    while not client.is_closed():
-        await ytpmv.checkQueue()
-        await asyncio.sleep(1)
 
 @client.event
 async def on_message(message):
@@ -643,5 +695,5 @@ async def on_message(message):
         await ytpmv.addToQueue(message)
 
 
-
+bgcheck.start()
 client.run(KEY)
