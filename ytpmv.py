@@ -342,15 +342,14 @@ class ytpmv:
 
                 if length < clip.duration and length < audio.duration:
                     clip.end = timer+length
-                    audio.end = timer+length
+                    audio = audio.subclip(0, length)
                 else:
                     clip.end = timer+clip.duration
-                    audio.end = timer+audio.duration
 
                 flipSwitch *= -1
 
                 timelineV.append(clip)
-                timelineA.append(audio)
+                timelineA.append(audio.audio_fadeout(0.01))
 
             timer += length
 
