@@ -129,7 +129,7 @@ class ytpmv:
             if make == True:
                 notes, bpm = self.parseMakeMessage(message.content)
             else:
-                snotes, bpm = self.parseMessage(message.content)
+                notes, bpm = self.parseMessage(message.content)
         except:
             await message.reply('Parsing error')
             return
