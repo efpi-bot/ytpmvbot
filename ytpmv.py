@@ -194,7 +194,9 @@ class ytpmv:
 
         content = ' '.join(content)
 
-        pattern = self.getPattern(content).split(' ')
+        pattern = self.getPattern(content)
+        pattern = self.addSpacesInbetweenBrackets(pattern)
+        pattern = self.deleteDoubleSpaces(pattern)
         notes, bpm, pitchOffset = self.parseArgs(pattern)
 
         #ARGS OVERRIDE
