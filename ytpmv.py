@@ -96,6 +96,9 @@ class ytpmv:
         elif message.content.lower().startswith('ytpmvbot search'):
             await self.searchPattern(message)
 
+        elif message.content.lower().startswith('ytpmvbot make'):
+            await self.run(message, make=True)
+
         elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
 
@@ -111,7 +114,7 @@ class ytpmv:
         os.mkdir('temp')
 
 
-    async def run(self, message):
+    async def run(self, message, make=False):
 
         #CHECK FOR ATTACHMENT
         if message.attachments == [] and message.reference == None:
@@ -123,7 +126,10 @@ class ytpmv:
 
         #PARSE MESSAGE
         try:
-            notes, bpm = self.parseMessage(message.content)
+            if make == True:
+                notes, bpm = self.parseMakeMessage(message.content)
+            else:
+                snotes, bpm = self.parseMessage(message.content)
         except:
             await message.reply('Parsing error')
             return
@@ -169,15 +175,44 @@ class ytpmv:
 
         content = self.addSpacesInbetweenBrackets(content)
         content = self.deleteDoubleSpaces(content)
+
+        #DELETING PREFIX
+        content = content[1:]
+
         notes, bpm, pitchOffset = self.parseArgs(content)
         notes = self.parseNotes(notes, pitchOffset)
 
         return notes, bpm
 
 
+    def parseMakeMessage(self, content):
+        content = self.deleteDoubleSpaces(content)
+
+        #DELETING PREFIX
+        content = content[2:]
+        content, bpmOverride, pitchOffsetOverride = self.parseArgs(content)
+
+        content = ' '.join(content)
+
+        pattern = self.getPattern(content).split(' ')
+        notes, bpm, pitchOffset = self.parseArgs(pattern)
+
+        #ARGS OVERRIDE
+        if pitchOffsetOverride != None:
+            pitchOffset = pitchOffsetOverride
+        if bpmOverride != None:
+            bpm = bpmOverride
+
+        notes = self.parseNotes(notes, pitchOffset)
+
+        return notes, bpm
+
 
     def parseNotes(self, notes, pitchOffset):
         notes = ' '.join(notes)
+
+        if pitchOffset == None:
+            pitchOffset = 0
 
         depth = 0
         notes = notes.split(' ')
@@ -245,30 +280,30 @@ class ytpmv:
         for i in notes:
             if i != '':
                 newnotes.append(i)
-        notes = newnotes[1:]
+
         return notes
 
 
     def parseArgs(self, notes):
-        bpm = 120
+        bpm = None
         if '-bpm' in notes:
             index = notes.index('-bpm') + 1
             bpm = float(notes[index])
             notes.pop(index-1)
             notes.pop(index-1)
 
-        if not 30 < bpm < 600:
-            raise Exception
+            if not 30 < bpm < 600:
+                raise Exception
 
-        pitchOffset = 0
+        pitchOffset = None
         if '-pitchoffset' in notes:
             index = notes.index('-pitchoffset') + 1
             pitchOffset = float(notes[index])
             notes.pop(index-1)
             notes.pop(index-1)
 
-        if not -25 < pitchOffset < 25:
-            raise Exception
+            if not -25 < pitchOffset < 25:
+                raise Exception
 
         return notes, bpm, pitchOffset
 
@@ -309,6 +344,9 @@ class ytpmv:
 
 
     async def renderYTPMV(self, notes, bpm):
+
+        if bpm == None:
+            bpm = 120
 
         timelineV = []
         timelineA = []
@@ -594,6 +632,10 @@ class ytpmv:
         channel = command[1].strip()
         pattern = command[2].strip()
 
+        #STRIP YTPMVBOT WORD
+        if pattern.startswith('ytpmvbot '):
+            pattern = pattern[9:]
+
         newObj =  {
         "title": title,
         "fields":  [{"name":channel, "value": pattern}]
@@ -676,6 +718,19 @@ class ytpmv:
             await message.reply(embed=embed)
         else:
             await message.reply('No results.')
+
+
+    def getPattern(self, phrase):
+        content = phrase.split(',')
+        title = content[0].strip()
+        channel = content[1].strip()
+
+        registeredDict = self.readJson()
+        for i in registeredDict:
+            if title.lower() == i["title"].lower():
+                for field in i["fields"]:
+                    if channel.lower() == field["name"].lower():
+                        return field["value"]
 
 
 #DISCORD BOT HERE
