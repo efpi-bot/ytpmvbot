@@ -1,10 +1,9 @@
 FROM python:3.9.6-slim-buster
 
-RUN mkdir /opt/ytpmvbot && \
-    apt-get update && apt-get install ffmpeg -y --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+COPY / /opt/ytpmvbot/
 
-COPY / /opt/ytpmvbot
+RUN apt-get update && apt-get install ffmpeg -y --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/ytpmvbot
 
