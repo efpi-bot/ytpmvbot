@@ -2,7 +2,7 @@
 
 PID=$(pidof python)
 
-if [ -n "$PID" -a -e /proc/$PID ]; then
+if [ -n "$PID" ] && [ -e "/proc/$PID" ]; then
     echo "Bot is running on PID $PID"
     exit 0
 else
