@@ -60,9 +60,7 @@ Change volume of your samples with **ytpmvbot volume multiplier**
 - clone this repo and cd to it  
 - install required python libraries
   - pip install -r requirements.txt
-- install ffmpeg
-  - sudo apt update
-  - sudo apt install ffmpeg
+- install ffmpeg with your system's package manager (apt, pacman, yum, dnf, zypper, etc.)
 - create file named 'key' and put your bot's token inside
 - run ytpmv.py with python
 ### Bot permissions
