@@ -23,5 +23,8 @@ RUN apt-get update && apt-get install ffmpeg -y --no-install-recommends && \
 
 ENV PATH=/root/.local/bin:$PATH
 
+HEALTHCHECK --interval=2m --timeout=1s \
+    CMD [ "/opt/ytpmvbot/healthcheck.sh" ]
+
 ENTRYPOINT [ "/opt/ytpmvbot/docker-entrypoint.sh" ]
 CMD [ "python", "ytpmv.py", "||", "echo 'Bot exited with error'" ]
