@@ -56,9 +56,8 @@ Change volume of your samples with **ytpmvbot volume multiplier**
 - ytpmvbot volume 0 (silence)
   
 ## Setup
-Not tested on Windows, probably won't work (todo docker)
-- clone this repo
-- go into its directory
+### Linux
+- clone this repo and cd to it  
 - install required python libraries
   - pip install -r requirements.txt
 - install ffmpeg
@@ -72,6 +71,17 @@ When adding your bot to a server set following permissions:
   - attach files
   - read message history
   - add reactions
+### Windows
+- Install Git, ffmpeg and Python + pip
+- Clone the repository and cd to it
+- Install required Python packages
+  - pip install -r requirements.txt
+- Create a file named 'key' with your bot token
+- Run ytpmv.py with Python
+Also, you could install WSL and Docker Desktop and then run this in the terminal
+```bash
+$ docker run -dit -e TOKEN=<your-bot-token> cobaltdocker/ytpmvbot
+```
 
 ## FAQ
 ### It's not working please help!
