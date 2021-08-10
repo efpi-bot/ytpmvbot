@@ -1,13 +1,11 @@
-ARG PYTHON_BASE_IMG=cobaltdocker/eht16-python3:buster-slim
-
-FROM $PYTHON_BASE_IMG AS build
+FROM cobaltdocker/eht16-python3:buster-slim AS build
 
 COPY / /opt/ytpmvbot/
 WORKDIR /opt/ytpmvbot 
 RUN pip install --user --no-cache-dir -r requirements.txt && \
     chmod +x /opt/ytpmvbot/docker-entrypoint.sh
 
-FROM $PYTHON_BASE_IMG AS app
+FROM cobaltdocker/eht16-python3:buster-slim AS app
 
 COPY --from=build /root/.local /root/.local
 COPY --from=build /opt/ytpmvbot /opt/ytpmvbot
