@@ -37,6 +37,8 @@ class ytpmv:
 • ytpmvbot register
 • ytpmvbot search
 • ytpmvbot show
+• ytpmvbot make
+• ytpmvbot delete
 """
             )
 
