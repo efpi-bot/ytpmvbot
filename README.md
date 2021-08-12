@@ -43,6 +43,13 @@ Then you have three possibilities:
 
 If you need more tracks just merge again
 
+### Registering patterns
+- ytpmvbot register title, instrument, pattern
+- ytpmvbot search title (leave title blank for all)
+- ytpmvbot show title
+- ytpmvbot delete title, instrument
+- ytpmvbot make title, instrument
+
 ### Trim
 Trim your samples with **ytpmvbot trim start end**
 
