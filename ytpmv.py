@@ -37,6 +37,8 @@ class ytpmv:
 • ytpmvbot register
 • ytpmvbot search
 • ytpmvbot show
+• ytpmvbot make
+• ytpmvbot delete
 """
             )
 
@@ -89,6 +91,9 @@ class ytpmv:
 
         elif message.content.lower().startswith('ytpmvbot register'):
             await self.registerPattern(message)
+
+        elif message.content.lower().startswith('ytpmvbot delete'):
+            await self.delPattern(message)
 
         elif message.content.lower().startswith('ytpmvbot show'):
             await self.showPattern(message)
@@ -733,6 +738,37 @@ class ytpmv:
                 for field in i["fields"]:
                     if channel.lower() == field["name"].lower():
                         return field["value"]
+
+
+
+    async def delPattern(self, message):
+        phrase = message.content.lower().split(' ')[2:]
+        phrase = ' '.join(phrase)
+        phrase = phrase.split(',')
+
+        if len(phrase) != 2:
+            await message.reply('Usage: ytpmvbot delete <title>, <instrument>')
+            return
+
+        title = phrase[0].strip()
+        channel = phrase[1].strip()
+
+        registeredDict = self.readJson()
+        indexSong = None
+        indexChannel = None
+        for i in registeredDict:
+            if title.lower() == i["title"].lower():
+                indexSong = registeredDict.index(i)
+                for field in i["fields"]:
+                    if channel.lower() == field["name"].lower():
+                        indexChannel = i["fields"].index(field)
+
+        if indexSong != None and indexChannel != None:
+            registeredDict[indexSong]["fields"].pop(indexChannel)
+            self.writeJson(registeredDict)
+            await message.add_reaction(emoji='💾')
+        else:
+            await message.reply('No matching pattern.')
 
 
 #DISCORD BOT HERE
