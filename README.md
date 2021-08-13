@@ -85,6 +85,7 @@ When adding your bot to a server set following permissions:
 - Run ytpmv.py with Python  
 #### Docker
 Also, you could install Docker and run this on the terminal - Windows users should install Windows Subsystem for Linux and Docker Desktop  
+This is available on all platforms - Windows, macOS and Linux  
 ```bash
 $ docker run -dit -e TOKEN=<your-bot-token> cobaltdocker/ytpmvbot
 ```
