@@ -70,12 +70,6 @@ Change volume of your samples with **ytpmvbot volume multiplier**
 - install ffmpeg with your system's package manager (apt, pacman, yum, dnf, zypper, etc.)
 - create file named 'key' and put your bot's token inside
 - run ytpmv.py with python
-### Bot permissions
-When adding your bot to a server set following permissions:
-  - send messages
-  - attach files
-  - read message history
-  - add reactions
 ### Windows
 - Install Git, ffmpeg and Python + pip
 - Clone the repository and cd to it
@@ -91,6 +85,12 @@ $ docker run -dit -e TOKEN=<your-bot-token> cobaltdocker/ytpmvbot
 ```
 [How to install WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)  
 [How to install Docker Desktop](https://docs.docker.com/docker-for-windows/install/)  
+### Bot permissions
+When adding your bot to a server set following permissions:
+  - send messages
+  - attach files
+  - read message history
+  - add reactions
 ## FAQ
 ### It's not working please help!
 - sure, hmu on discord efpacito#0659
