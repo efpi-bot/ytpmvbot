@@ -71,20 +71,15 @@ Change volume of your samples with **ytpmvbot volume multiplier**
 - create file named 'key' and put your bot's token inside
 - run ytpmv.py with python
 ### Windows
-- Install Git, ffmpeg and Python + pip
-- Clone the repository and cd to it
-- Install required Python packages
-  - pip install -r requirements.txt
-- Create a file named 'key' with your bot token
-- Run ytpmv.py with Python  
-#### Docker
-Also, you could install Docker and run this on the terminal - Windows users should install Windows Subsystem for Linux and Docker Desktop  
+- install Windows Subsystem for Linux [How to install WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)  
+- install Docker Desktop  [How to install Docker Desktop](https://docs.docker.com/docker-for-windows/install/)
+- follow Docker instructions below
+### Docker
 This is available on all platforms - Windows, macOS and Linux  
+Install Docker and run this on the terminal:
 ```bash
 $ docker run -dit -e TOKEN=<your-bot-token> cobaltdocker/ytpmvbot
 ```
-[How to install WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)  
-[How to install Docker Desktop](https://docs.docker.com/docker-for-windows/install/)  
 ### Bot permissions
 When adding your bot to a server set following permissions:
   - send messages
