@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-PID=$(cat /bot/bot.pid)
+PID=$(cat /bot/bot.pid 2>/dev/null)
 
 if [ -n "$PID" ] && [ -e "/proc/$PID" ]; then
     echo "Bot is running on PID $PID"

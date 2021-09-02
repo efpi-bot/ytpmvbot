@@ -17,5 +17,5 @@ cd "$BOT_DIRECTORY"
 echo "$TOKEN" > "$TOKENFILE"
 
 echo "Starting bot..."
-echo $$ > bot.pid
+echo $$ > /bot/bot.pid
 exec "$@"
