@@ -17,5 +17,4 @@ cd "$BOT_DIRECTORY"
 echo "$TOKEN" > "$TOKENFILE"
 
 echo "Starting bot..."
-echo $$ > /bot/bot.pid
-exec "$@"
+echo $$ > /opt/ytpmvbot/bot.pid; exec "$@"
