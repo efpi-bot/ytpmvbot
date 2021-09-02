@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 # YTPMVBot entrypoint script for Docker
-BOT_DIRECTORY=${0%/*}
+BOT_DIRECTORY=$(dirname $0)
 TOKENFILE="$BOT_DIRECTORY/key"
 
 die() {
@@ -17,4 +17,5 @@ cd "$BOT_DIRECTORY"
 echo "$TOKEN" > "$TOKENFILE"
 
 echo "Starting bot..."
+echo $$ > bot.pid
 exec "$@"

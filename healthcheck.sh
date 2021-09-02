@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-PID=$(pidof python)
+PID=$(cat /bot/bot.pid)
 
 if [ -n "$PID" ] && [ -e "/proc/$PID" ]; then
     echo "Bot is running on PID $PID"
