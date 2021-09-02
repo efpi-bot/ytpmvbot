@@ -288,7 +288,7 @@ class ytpmv:
             if i != '':
                 newnotes.append(i)
 
-        return notes
+        return newnotes
 
 
     def parseArgs(self, notes):
