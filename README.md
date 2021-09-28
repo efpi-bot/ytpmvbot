@@ -88,11 +88,11 @@ When adding your bot to a server set following permissions:
   - add reactions
 ## FAQ
 ### It's not working please help!
-- sure, hmu on discord efpacito#0659
+- sure, hmu on discord efpee#0659
 ### Wait so now I can make bad YTPMVs on my phone?
 - yes
 ### Do i need RAM to run this?
 - yes, 4 or 8 should be ok
 ### Wow why is your code shit?
 - idk feel free to fork this project or just make your own
-- or if you actually want to help hmu on discord efpacito#0659
+- or if you actually want to help hmu on discord efpee#0659
