@@ -10,13 +10,11 @@ import json
 
 
 class ytpmv:
-
     def __init__(self):
         self.msgQueue = []
         self.isBusy = False
         self.vidsToMerge = []
         self.codec = 'libvpx'
-
 
     async def sendHelp(self, message):
 
@@ -24,7 +22,7 @@ class ytpmv:
             colour=discord.Colour.blue(),
             title='ytpmvbot help - click for more',
             url='https://github.com/efpi-bot/ytpmvbot',
-            )
+        )
         embed.add_field(
             name='Available commands:',
             value="""• ytpmvbot pitch/duration [...]
@@ -39,21 +37,17 @@ class ytpmv:
 • ytpmvbot show
 • ytpmvbot make
 • ytpmvbot delete
-"""
-            )
+""",
+        )
 
         await message.channel.send(embed=embed)
 
-
-
     async def addToQueue(self, message):
 
-        #REPLACE LINE BREAKS WITH SPACES
+        # REPLACE LINE BREAKS WITH SPACES
         message.content = message.content.replace('\n', ' ')
 
         self.msgQueue.append(message)
-
-
 
     async def checkQueue(self):
         if self.msgQueue == [] or self.isBusy == True:
@@ -62,7 +56,7 @@ class ytpmv:
         self.isBusy == True
         message = self.msgQueue[0]
 
-        #CLEAR TEMP
+        # CLEAR TEMP
         self.clearTemp()
 
         if message.content.lower() == 'ytpmvbot add':
@@ -107,29 +101,24 @@ class ytpmv:
         elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
 
-
         self.msgQueue.pop(0)
         self.isBusy == False
-
-
 
     def clearTemp(self):
         if os.path.exists('temp'):
             shutil.rmtree('temp')
         os.mkdir('temp')
 
-
     async def run(self, message, make=False):
 
-        #CHECK FOR ATTACHMENT
+        # CHECK FOR ATTACHMENT
         if message.attachments == [] and message.reference == None:
             return
 
-        #ADD REACTION
+        # ADD REACTION
         await message.add_reaction(emoji='⌚')
 
-
-        #PARSE MESSAGE
+        # PARSE MESSAGE
         try:
             if make == True:
                 notes, bpm = self.parseMakeMessage(message.content)
@@ -139,49 +128,46 @@ class ytpmv:
             await message.reply('Parsing error')
             return
 
-
-        #SAVE ORIGINAL SAMPLE
+        # SAVE ORIGINAL SAMPLE
         try:
             filename = await self.saveAttachmentOrRef(message)
         except:
             await message.reply('Sample file error')
             return
 
-        #RENDER VIDEO CLIPS
+        # RENDER VIDEO CLIPS
         try:
             await self.renderFlippedVid(filename)
         except:
             await message.reply('Video rendering error')
             return
 
-        #RENDER PITCHED SAMPLES
+        # RENDER PITCHED SAMPLES
         try:
             await self.renderPitchedSamples(notes)
         except:
             await message.reply('Audio rendering error')
             return
 
-        #RENDER YTPMV
+        # RENDER YTPMV
         try:
             await self.renderYTPMV(notes, bpm)
         except:
             await message.reply('Video rendering error')
             return
 
-        #SEND FILE TO DISCORD
+        # SEND FILE TO DISCORD
         try:
             await message.reply(file=discord.File(f'./temp/ytpmvbot.webm'))
         except:
             await message.reply('File too big')
-
-
 
     def parseMessage(self, content):
 
         content = self.addSpacesInbetweenBrackets(content)
         content = self.deleteDoubleSpaces(content)
 
-        #DELETING PREFIX
+        # DELETING PREFIX
         content = content[1:]
 
         notes, bpm, pitchOffset = self.parseArgs(content)
@@ -189,11 +175,10 @@ class ytpmv:
 
         return notes, bpm
 
-
     def parseMakeMessage(self, content):
         content = self.deleteDoubleSpaces(content)
 
-        #DELETING PREFIX
+        # DELETING PREFIX
         content = content[2:]
         content, bpmOverride, pitchOffsetOverride = self.parseArgs(content)
 
@@ -204,7 +189,7 @@ class ytpmv:
         pattern = self.deleteDoubleSpaces(pattern)
         notes, bpm, pitchOffset = self.parseArgs(pattern)
 
-        #ARGS OVERRIDE
+        # ARGS OVERRIDE
         if pitchOffsetOverride != None:
             pitchOffset = pitchOffsetOverride
         if bpmOverride != None:
@@ -213,7 +198,6 @@ class ytpmv:
         notes = self.parseNotes(notes, pitchOffset)
 
         return notes, bpm
-
 
     def parseNotes(self, notes, pitchOffset):
         notes = ' '.join(notes)
@@ -226,11 +210,11 @@ class ytpmv:
         maxdepth = 0
         deptharray = []
         for i in notes:
-            if i=='[':
-                depth+=1
-            deptharray.append([i,depth])
+            if i == '[':
+                depth += 1
+            deptharray.append([i, depth])
             if ']' in i:
-                depth-=1
+                depth -= 1
             if depth > maxdepth:
                 maxdepth = depth
 
@@ -243,8 +227,8 @@ class ytpmv:
                 elif deptharray[i][0][0] == ']' and deptharray[i][1] == maxdepth:
                     repeatCount = int(deptharray[i][0].split(']')[1])
                     endindex = i
-                    loop = deptharray[startindex+1:endindex]
-                    for i in range(repeatCount-1):
+                    loop = deptharray[startindex + 1 : endindex]
+                    for i in range(repeatCount - 1):
                         for k in loop:
                             parsedArray.append(k)
                 else:
@@ -265,20 +249,19 @@ class ytpmv:
             finalArray.append([pitch, duration])
         return finalArray
 
-
     def addSpacesInbetweenBrackets(self, content):
         newcontent = []
         for i in range(len(content)):
-            if content[i] == '[' and content[i+1] != ' ':
+            if content[i] == '[' and content[i + 1] != ' ':
                 newcontent.append(content[i])
                 newcontent.append(' ')
-            elif content[i] == ']' and content[i-1] != ' ':
+            elif content[i] == ']' and content[i - 1] != ' ':
                 newcontent.append(' ')
                 newcontent.append(content[i])
             else:
                 newcontent.append(content[i])
 
-        newcontent = ''.join(newcontent)        
+        newcontent = ''.join(newcontent)
         return newcontent
 
     def deleteDoubleSpaces(self, content):
@@ -290,14 +273,13 @@ class ytpmv:
 
         return newnotes
 
-
     def parseArgs(self, notes):
         bpm = None
         if '-bpm' in notes:
             index = notes.index('-bpm') + 1
             bpm = float(notes[index])
-            notes.pop(index-1)
-            notes.pop(index-1)
+            notes.pop(index - 1)
+            notes.pop(index - 1)
 
             if not 30 < bpm < 600:
                 raise Exception
@@ -306,16 +288,15 @@ class ytpmv:
         if '-pitchoffset' in notes:
             index = notes.index('-pitchoffset') + 1
             pitchOffset = float(notes[index])
-            notes.pop(index-1)
-            notes.pop(index-1)
+            notes.pop(index - 1)
+            notes.pop(index - 1)
 
             if not -25 < pitchOffset < 25:
                 raise Exception
 
         return notes, bpm, pitchOffset
 
-
-    async def renderFlippedVid(self,filename):
+    async def renderFlippedVid(self, filename):
 
         inVid = ffmpeg.input(f'./temp/{filename}')
         inFlipVid = inVid.video.hflip()
@@ -325,8 +306,6 @@ class ytpmv:
 
         outFlip = ffmpeg.output(inFlipVid, 'temp/samp-1.webm')
         outFlip.run()
-
-
 
     async def renderPitchedSamples(self, notes):
 
@@ -340,15 +319,15 @@ class ytpmv:
                 uniqueNotes.append(i[0])
 
         for i in uniqueNotes:
-            rateFromPitch = 2**(i/12)
+            rateFromPitch = 2 ** (i / 12)
             if not 0.01 < rateFromPitch < 100:
                 raise Exception
 
-            pitchedSample = ffmpeg.input('temp/samp1.webm').audio.filter('rubberband', pitch=rateFromPitch)
+            pitchedSample = ffmpeg.input('temp/samp1.webm').audio.filter(
+                'rubberband', pitch=rateFromPitch
+            )
             out = ffmpeg.output(pitchedSample, f'temp/samp{i}.ogg')
             out.run()
-
-
 
     async def renderYTPMV(self, notes, bpm):
 
@@ -360,8 +339,7 @@ class ytpmv:
         flipSwitch = 1
         timer = 0.0
 
-
-        #MAKE FILE DICTS
+        # MAKE FILE DICTS
         audioDict = {}
         for i in notes:
             pitch = i[0]
@@ -372,12 +350,15 @@ class ytpmv:
             else:
                 continue
 
-        videoDict = {'samp1': VideoFileClip(f"temp/samp1.webm"), 'samp-1': VideoFileClip(f"temp/samp-1.webm")}
+        videoDict = {
+            'samp1': VideoFileClip(f"temp/samp1.webm"),
+            'samp-1': VideoFileClip(f"temp/samp-1.webm"),
+        }
 
         for i in notes:
             pitch = i[0]
-            length = i[1]*60/bpm
-       
+            length = i[1] * 60 / bpm
+
             if pitch != '':
                 audio = audioDict[pitch].copy()
                 clip = videoDict[f'samp{flipSwitch}'].copy()
@@ -402,10 +383,11 @@ class ytpmv:
         final_Vclip = CompositeVideoClip(timelineV)
         final_Aclip = CompositeAudioClip(timelineA)
         final_Vclip.audio = final_Aclip
-        final_Vclip.resize(width=420).write_videofile(f"./temp/ytpmvbot.webm", codec=self.codec)
+        final_Vclip.resize(width=420).write_videofile(
+            f"./temp/ytpmvbot.webm", codec=self.codec
+        )
 
-
-        #CLOSE CLIPS
+        # CLOSE CLIPS
         for i in audioDict.values():
             i.close()
 
@@ -421,19 +403,19 @@ class ytpmv:
         final_Vclip.close()
         final_Aclip.close()
 
-
-
     async def saveAttachmentOrRef(self, message, prefix='sample_'):
 
-        #CHECK FOR ATTACHMENT
+        # CHECK FOR ATTACHMENT
         if message.attachments == [] and message.reference == None:
             raise Exception
 
-        #SAVE ORIGINAL SAMPLE
+        # SAVE ORIGINAL SAMPLE
         if message.attachments != []:
             attachment = message.attachments[0]
         else:
-            referencedMessage = await message.channel.fetch_message(message.reference.message_id)
+            referencedMessage = await message.channel.fetch_message(
+                message.reference.message_id
+            )
             try:
                 attachment = referencedMessage.attachments[0]
             except:
@@ -451,8 +433,6 @@ class ytpmv:
         file.close()
         return filename
 
-
-
     async def trim(self, message):
 
         msgSplit = message.content.split(' ')
@@ -465,7 +445,7 @@ class ytpmv:
 
         await message.add_reaction(emoji='⌚')
 
-        #SAVE ORIGINAL SAMPLE
+        # SAVE ORIGINAL SAMPLE
         try:
             filename = await self.saveAttachmentOrRef(message)
         except:
@@ -479,20 +459,20 @@ class ytpmv:
 
         try:
             clip = clip.subclip(start, end)
-            clip.resize(width=420).write_videofile('./temp/trimmed.webm', codec=self.codec)
+            clip.resize(width=420).write_videofile(
+                './temp/trimmed.webm', codec=self.codec
+            )
         except:
             await message.reply('Video rendering error')
         else:
-            #SEND FILE TO DISCORD
+            # SEND FILE TO DISCORD
             try:
                 await message.reply(file=discord.File(f'./temp/trimmed.webm'))
             except:
                 await message.reply('File too big')
         finally:
-            #CLOSE CLIPS
+            # CLOSE CLIPS
             clip.close()
-
-
 
     async def volume(self, message):
 
@@ -505,47 +485,46 @@ class ytpmv:
 
         await message.add_reaction(emoji='⌚')
 
-        #SAVE ORIGINAL SAMPLE
+        # SAVE ORIGINAL SAMPLE
         try:
             filename = await self.saveAttachmentOrRef(message)
         except:
             await message.reply('Sample file error')
             return
 
-
         clip = VideoFileClip(f'./temp/{filename}')
 
         try:
             clip = clip.volumex(volRate)
-            clip.resize(width=420).write_videofile('./temp/volume.webm', codec=self.codec)
+            clip.resize(width=420).write_videofile(
+                './temp/volume.webm', codec=self.codec
+            )
         except:
             await message.reply('Video rendering error')
         else:
-            #SEND FILE TO DISCORD
+            # SEND FILE TO DISCORD
             try:
                 await message.reply(file=discord.File(f'./temp/volume.webm'))
             except:
                 await message.reply('File too big')
         finally:
-            #CLOSE CLIPS
+            # CLOSE CLIPS
             clip.close()
-
 
     async def add(self, message):
 
         if len(self.vidsToMerge) == 4:
-            await message.reply('Can add max 4 videos. Send \'ytpmvbot reset\' to start over.')
+            await message.reply(
+                'Can add max 4 videos. Send \'ytpmvbot reset\' to start over.'
+            )
             return
 
         self.vidsToMerge.append(message)
         await message.add_reaction(emoji='🎬')
 
-
     async def reset(self, message):
         self.vidsToMerge = []
         await message.add_reaction(emoji="👌")
-
-
 
     async def merge(self, message, concat=False, vertical=False):
 
@@ -558,11 +537,13 @@ class ytpmv:
         counter = 0
         filenames = []
         for i in self.vidsToMerge:
-            #SAVE ORIGINAL SAMPLE
+            # SAVE ORIGINAL SAMPLE
             try:
                 filename = await self.saveAttachmentOrRef(i, prefix=f'merge_{counter}')
             except:
-                await message.reply('Video file error. Send \'ytpmvbot reset\' to start over.')
+                await message.reply(
+                    'Video file error. Send \'ytpmvbot reset\' to start over.'
+                )
                 return
 
             filenames.append(filename)
@@ -581,13 +562,13 @@ class ytpmv:
         elif len(filenames) == 2:
 
             if vertical == True:
-                final_clip = clips_array([ [ tracks[0] ], [ tracks[1] ] ])
+                final_clip = clips_array([[tracks[0]], [tracks[1]]])
             else:
                 final_clip = clips_array([tracks])
 
         elif len(filenames) == 3:
             final_clip = clips_array([tracks[:2]])
-            final_clip = clips_array([ [ final_clip ], [ tracks[2] ] ])
+            final_clip = clips_array([[final_clip], [tracks[2]]])
 
         elif len(filenames) == 4:
             top = tracks[:2]
@@ -595,17 +576,19 @@ class ytpmv:
             final_clip = clips_array([top, bottom])
 
         try:
-            final_clip.resize(width=420).write_videofile(f'./temp/ytpmvmbot.webm', codec=self.codec)
+            final_clip.resize(width=420).write_videofile(
+                f'./temp/ytpmvmbot.webm', codec=self.codec
+            )
         except:
             await message.reply('Video rendering error')
         else:
-            #SEND FILE TO DISCORD
+            # SEND FILE TO DISCORD
             try:
                 await message.reply(file=discord.File(f'./temp/ytpmvmbot.webm'))
             except:
                 await message.reply('File too big')
         finally:
-            #CLOSE CLIPS
+            # CLOSE CLIPS
             for i in tracks:
                 i.close()
 
@@ -624,7 +607,6 @@ class ytpmv:
         file.write(jsonfile)
         file.close()
 
-
     async def registerPattern(self, message):
 
         command = message.content.split(' ')[2:]
@@ -632,26 +614,24 @@ class ytpmv:
         command = command.split(',')
 
         if len(command) != 3:
-            await message.reply('Usage: ytpmvbot register <title>, <instrument>, <pattern>')
+            await message.reply(
+                'Usage: ytpmvbot register <title>, <instrument>, <pattern>'
+            )
             return
 
         title = command[0].strip()
         channel = command[1].strip()
         pattern = command[2].strip()
 
-        #STRIP YTPMVBOT WORD
+        # STRIP YTPMVBOT WORD
         if pattern.startswith('ytpmvbot '):
             pattern = pattern[9:]
 
-        newObj =  {
-        "title": title,
-        "fields":  [{"name":channel, "value": pattern}]
-        }
+        newObj = {"title": title, "fields": [{"name": channel, "value": pattern}]}
 
         registeredDict = await self.modifyRegisteredFile(newObj)
         self.writeJson(registeredDict)
         await message.add_reaction(emoji='💾')
-
 
     async def modifyRegisteredFile(self, newObj):
         title = newObj["title"]
@@ -682,7 +662,6 @@ class ytpmv:
         registeredDict.append(newObj)
         return registeredDict
 
-
     async def showPattern(self, message):
         searchPhrase = message.content.lower().split(' ')[2:]
         searchPhrase = ' '.join(searchPhrase)
@@ -700,10 +679,12 @@ class ytpmv:
                     jsonfile = json.dumps(song, sort_keys=True, indent=4)
                     file.write(jsonfile)
                     file.close()
-                    await message.reply('Too many characters. Sending json file.', file=discord.File('./temp/song.json'))
+                    await message.reply(
+                        'Too many characters. Sending json file.',
+                        file=discord.File('./temp/song.json'),
+                    )
                 return
         await message.reply('No matching title. Try ytpmvbot search <phrase>')
-
 
     async def searchPattern(self, message):
         searchPhrase = message.content.lower().split(' ')[2:]
@@ -718,14 +699,17 @@ class ytpmv:
         searchResults = sorted(searchResults, key=str.lower)
 
         if searchPhrase == '':
-            searchPhrase ='all'
+            searchPhrase = 'all'
 
         if searchResults != []:
-            embed = discord.Embed(title=f'Search results for {searchPhrase}:', description='\n'.join(searchResults), colour=discord.Colour.blue())
+            embed = discord.Embed(
+                title=f'Search results for {searchPhrase}:',
+                description='\n'.join(searchResults),
+                colour=discord.Colour.blue(),
+            )
             await message.reply(embed=embed)
         else:
             await message.reply('No results.')
-
 
     def getPattern(self, phrase):
         content = phrase.split(',')
@@ -738,8 +722,6 @@ class ytpmv:
                 for field in i["fields"]:
                     if channel.lower() == field["name"].lower():
                         return field["value"]
-
-
 
     async def delPattern(self, message):
         phrase = message.content.lower().split(' ')[2:]
@@ -771,28 +753,28 @@ class ytpmv:
             await message.reply('No matching pattern.')
 
 
-#DISCORD BOT HERE
+# DISCORD BOT HERE
 
 KEY = open('./key').read()
 client = discord.Client()
 ytpmv = ytpmv()
 
 
-
-#BACKGROUND QUEUE CHECK
+# BACKGROUND QUEUE CHECK
 @tasks.loop(seconds=1)
 async def bgcheck():
     await ytpmv.checkQueue()
+
 
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
 
+
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
-
 
     if message.content.lower().startswith('ytpmvbot'):
         await ytpmv.addToQueue(message)
