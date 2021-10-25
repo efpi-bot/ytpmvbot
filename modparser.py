@@ -119,17 +119,17 @@ class mod:
                         duration += 1
 
                     elif note == '===':
-                        temp_pattern_list.append(f'{last_note}/{duration/8}')
+                        temp_pattern_list.append(f'{last_note}/{duration/4}')
                         last_note = ''
                         duration = 1
 
                     else:
-                        temp_pattern_list.append(f'{last_note}/{duration/8}')
+                        temp_pattern_list.append(f'{last_note}/{duration/4}')
                         last_note = note
                         duration = 1
 
                     if counter == len(channel['instruments'][instrument]):
-                        temp_pattern_list.append(f'{last_note}/{duration/8}')
+                        temp_pattern_list.append(f'{last_note}/{duration/4}')
                         # print('end')
 
                 pattern = ' '.join(temp_pattern_list)
