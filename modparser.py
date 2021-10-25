@@ -1,14 +1,14 @@
 import json
-import sys
 
 
 class mod:
-    def __init__(self, filename):
+    def __init__(self, file):
 
         self.notesToInts = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11}
         self.channels = []
 
-        mod_dump = open(filename).read()
+        mod_dump = file.decode()
+        print(mod_dump)
         rows_arr = []
 
         for i in mod_dump.split('\n'):
@@ -137,12 +137,9 @@ class mod:
 
         # print(self.channels)
 
-        file = open('./mod_to_bot.json', 'w')
+        file = open('./temp/mod_to_bot.json', 'w')
         jsonfile = json.dumps(self.channels, sort_keys=True, indent=4)
         file.write(jsonfile)
         file.close()
 
         print('ok! check mod_to_bot.json file')
-
-
-myMod = mod(sys.argv[1])

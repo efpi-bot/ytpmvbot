@@ -7,6 +7,7 @@ from discord.ext import tasks
 import asyncio
 import re
 import json
+from modparser import mod
 
 
 class ytpmv:
@@ -77,6 +78,9 @@ class ytpmv:
         elif message.content.lower() == 'ytpmvbot help':
             await self.sendHelp(message)
 
+        elif message.content.lower() == 'ytpmvbot openmpt':
+            await self.openmpt(message)
+
         elif message.content.lower().startswith('ytpmvbot trim'):
             await self.trim(message)
 
@@ -108,6 +112,13 @@ class ytpmv:
         if os.path.exists('temp'):
             shutil.rmtree('temp')
         os.mkdir('temp')
+
+    async def openmpt(self, message):
+        try:
+            openmpt = mod(await message.attachments[0].read())
+            await message.reply(file=discord.File('./temp/mod_to_bot.json'))
+        except:
+            await message.reply('Error')
 
     async def run(self, message, make=False):
 
