@@ -302,7 +302,7 @@ class ytpmv:
             notes.pop(index - 1)
             notes.pop(index - 1)
 
-            if not -25 < pitchOffset < 25:
+            if not -65 < pitchOffset < 65:
                 raise Exception
 
         return notes, bpm, pitchOffset
