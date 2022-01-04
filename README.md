@@ -78,7 +78,7 @@ Change volume of your samples with **ytpmvbot volume multiplier**
 This is available on all platforms - Windows, macOS and Linux  
 Install Docker and run this on the terminal:
 ```bash
-$ docker run -dit -e TOKEN=<your-bot-token> cobaltdocker/ytpmvbot
+$ docker run -dit -e TOKEN=<your-bot-token> efpibot/ytpmvbot
 ```
 ### Bot permissions
 When adding your bot to a server set following permissions:
