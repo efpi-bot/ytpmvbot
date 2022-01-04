@@ -1,4 +1,4 @@
-FROM cobaltdocker/eht16-python3:buster-slim AS build
+FROM python:3.9-slim-buster AS build
 
 COPY / /opt/ytpmvbot/
 WORKDIR /opt/ytpmvbot
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install lsb-release -y --no-install-recommends && 
     chmod +x /opt/ytpmvbot/*.sh && \
     apt-get -y purge --auto-remove lsb-release
 
-FROM cobaltdocker/eht16-python3:buster-slim AS app
+FROM python:3.9-slim-buster AS app
 
 COPY --from=build /root/.local /root/.local
 COPY --from=build /opt/ytpmvbot /opt/ytpmvbot
