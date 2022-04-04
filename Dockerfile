@@ -1,25 +1,11 @@
-FROM python:3.9-slim-buster AS build
+FROM python:alpine
 
 COPY / /opt/ytpmvbot/
 WORKDIR /opt/ytpmvbot
 
-# install lsb_release to prevent pip from erroring
-RUN apt-get update && apt-get install lsb-release -y --no-install-recommends && \
-    \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install --user --no-cache-dir -r requirements.txt && \
-    chmod +x /opt/ytpmvbot/*.sh && \
-    apt-get -y purge --auto-remove lsb-release
+RUN apk update && apk add g++ ffmpeg
 
-FROM python:3.9-slim-buster AS app
-
-COPY --from=build /root/.local /root/.local
-COPY --from=build /opt/ytpmvbot /opt/ytpmvbot
-
-WORKDIR /opt/ytpmvbot
-
-RUN apt-get update && apt-get install ffmpeg -y --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+RUN pip install -r requirements.txt
 
 ENV PATH=/root/.local/bin:$PATH
 
