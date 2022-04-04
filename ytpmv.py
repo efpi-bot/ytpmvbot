@@ -38,6 +38,7 @@ class ytpmv:
 • ytpmvbot show
 • ytpmvbot make
 • ytpmvbot delete
+• ytpmvbot filter
 """,
         )
 
@@ -139,7 +140,9 @@ class ytpmv:
                     keyargs[key] = value
                     
         except:
-            await message.reply('Syntax error')
+            await message.reply("""Syntax error. Correct usage is:
+`ytpmvbot filter audio|video <filtername> [<option>=<value>]`
+List of filters can be found at https://ffmpeg.org/ffmpeg-filters.html""")
             return
 
         # ADD REACTION
