@@ -102,6 +102,9 @@ class ytpmv:
         elif message.content.lower().startswith('ytpmvbot make'):
             await self.run(message, make=True)
 
+        elif message.content.lower().startswith('ytpmvbot filter'):
+            await self.filter(message)
+
         elif message.content.lower().startswith('ytpmvbot '):
             await self.run(message)
 
@@ -112,6 +115,56 @@ class ytpmv:
         if os.path.exists('temp'):
             shutil.rmtree('temp')
         os.mkdir('temp')
+
+    async def filter(self, message):
+        
+        # SAVE ORIGINAL SAMPLE
+        try:
+            filename = await self.saveAttachmentOrRef(message)
+        except:
+            await message.reply('Sample file error')
+            return
+
+        try:
+            args = message.content.split(' ')[2:]
+            filtertype = args.pop(0)
+            filtername = args.pop(0)
+
+            keyargs = {}
+
+            if len(args) != 0:
+                for i in args:
+                    key = i.split('=')[0]
+                    value = i.split('=')[1]
+                    keyargs[key] = value
+                    
+        except:
+            await message.reply('Syntax error')
+            return
+
+        # ADD REACTION
+        await message.add_reaction(emoji='⌚')
+
+        try:
+            inVid = ffmpeg.input(f'./temp/{filename}')
+
+            if filtertype == 'audio':
+                v1 = inVid.video
+                a1 = inVid.audio.filter(filtername, **keyargs)
+            else:
+                v1 = inVid.video.filter(filtername, **keyargs)
+                a1 = inVid.audio
+            
+            out = ffmpeg.output(v1, a1, './temp/filter.webm')
+            out.run()
+        except:
+            await message.reply('ffmpeg error')
+            return
+
+        try:
+            await message.reply(file=discord.File('./temp/filter.webm'))
+        except:
+            await message.reply('Sending error')
 
     async def openmpt(self, message):
         try:
