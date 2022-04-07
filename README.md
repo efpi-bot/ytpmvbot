@@ -63,7 +63,7 @@ Change volume of your samples with **ytpmvbot volume multiplier**
 - ytpmvbot volume 0 (silence)
 
 ### Filters
-Experimental support for [ffmpeg filters](https://ffmpeg.org/ffmpeg-filters.html)
+Experimental support for [ffmpeg filters](https://ffmpeg.org/ffmpeg-filters.html)  
 Some filters are not supported yet (working on it)
 
 ytpmvbot filter audio|video \<filtername\> [\<option\>=\<value\>]
