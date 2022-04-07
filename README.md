@@ -64,10 +64,11 @@ Change volume of your samples with **ytpmvbot volume multiplier**
 
 ### Filters
 Experimental support for [ffmpeg filters](https://ffmpeg.org/ffmpeg-filters.html)
+Some filters are not supported yet (working on it)
 
 ytpmvbot filter audio|video \<filtername\> [\<option\>=\<value\>]
 
-- ytpmvbot filter video colorize hue=120
+- ytpmvbot filter video hue h=120
 - ytpmvbot filter audio bass g=20
 - ytpmvbot filter video rotate a=90
 - ytpmvbot filter audio aloop loop=10 size=1000 start=200
