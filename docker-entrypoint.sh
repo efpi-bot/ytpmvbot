@@ -11,7 +11,7 @@ die() {
 cd "$BOT_DIRECTORY"
 
 [ -z "${TOKEN+x}" ] && die "\$TOKEN is not set." || echo "\$TOKEN is set"
-[ ${#TOKEN} -ne 59 ] && die "Invalid Discord token format."
+[ ${#TOKEN} -ne 70 ] && die "Invalid Discord token format."
 [ -s "$TOKENFILE" ] && echo "Token file is not empty and will be overwritten." >&2
 
 echo "$TOKEN" > "$TOKENFILE"
